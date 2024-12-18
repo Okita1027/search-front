@@ -30,7 +30,6 @@ import UserList from "@/components/UserList.vue";
 import MyDivider from "@/components/MyDivider.vue";
 import { useRoute, useRouter } from "vue-router";
 import myAxios from "@/plugins/myAxios";
-import { message } from "ant-design-vue";
 
 const postList = ref([]);
 
@@ -43,10 +42,8 @@ const router = useRouter();
 const activeKey = route.params.category;
 
 const initSearchParams = {
-  type: activeKey,
+  // type: activeKey,
   text: "",
-  // pageSize: 10,
-  // pageNum: 1,
 };
 
 const searchText = ref(route.query.text || "");
@@ -55,70 +52,29 @@ const searchText = ref(route.query.text || "");
  * 加载数据
  * @param params
  */
-const loadDataOld = (params: any) => {
+const loadData = (params: any) => {
   const postQuery = {
     ...params,
     searchText: params.text,
   };
-  myAxios.post("article", postQuery).then((res: any) => {
-    postList.value = res.records;
+  myAxios.get("/post", { params: postQuery }).then((res: any) => {
+    postList.value = res.data;
   });
 
   const userQuery = {
     ...params,
     userName: params.text,
   };
-  myAxios.post("user", userQuery).then((res: any) => {
-    userList.value = res.records;
+  myAxios.get("/user", { params: userQuery }).then((res: any) => {
+    userList.value = res.data;
   });
 
   const pictureQuery = {
     ...params,
     searchText: params.text,
   };
-  myAxios.post("picture", pictureQuery).then((res: any) => {
-    pictureList.value = res.records;
-  });
-};
-
-/**
- * 加载聚合数据
- * @param params
- */
-const loadAllData = (params: any) => {
-  const query = {
-    ...params,
-    searchText: params.text,
-  };
-  myAxios.post("search/all", query).then((res: any) => {
-    postList.value = res.postList;
-    userList.value = res.userList;
-    pictureList.value = res.pictureList;
-  });
-};
-
-/**
- * 加载单类数据
- * @param params
- */
-const loadData = (params: any) => {
-  const { type = "post" } = params;
-  if (!type) {
-    message.error("类别为空");
-    return;
-  }
-  const query = {
-    ...params,
-    searchText: params.text,
-  };
-  myAxios.post("search/all", query).then((res: any) => {
-    if (type === "post") {
-      postList.value = res.dataList;
-    } else if (type === "user") {
-      userList.value = res.dataList;
-    } else if (type === "picture") {
-      pictureList.value = res.dataList;
-    }
+  myAxios.get("/picture", { params: pictureQuery }).then((res: any) => {
+    pictureList.value = res.data;
   });
 };
 
@@ -128,7 +84,7 @@ watchEffect(() => {
   searchParams.value = {
     ...initSearchParams,
     text: route.query.text,
-    type: route.params.category,
+    // type: route.params.category,
   } as any;
   loadData(searchParams.value);
 });
