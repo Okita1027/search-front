@@ -10,7 +10,7 @@
           <template #cover>
             <img alt="头像" :src="item.avatarUrl" />
           </template>
-          <a-card-meta :title="item.userName">
+          <a-card-meta :title="item.title">
             <template #description>{{ item.profile }}</template>
           </a-card-meta>
         </a-card>

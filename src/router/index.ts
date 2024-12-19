@@ -5,6 +5,9 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/",
     component: IndexPage,
+    meta: {
+      title: "聚合搜索平台",
+    },
   },
   {
     path: "/:category",

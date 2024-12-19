@@ -1,19 +1,26 @@
 <template>
   <!-- 无法单独改变组件的大小，故放大整个页面 -->
-  <div style="transform: scale(1.5); transform-origin: top">
+  <div style="transform: scale(1.5); margin-top: 25px; transform-origin: top">
     <a-auto-complete
       autofocus="true"
       backfill="true"
       v-model:value="searchText"
       :options="suggestions"
-      style="width: 875px"
+      style="width: 425px; margin-left: 200px; transform: scale(1.2)"
       placeholder="请输入搜索关键词"
       @focus="onSearch"
       @search="onSearch"
       @select="onSelect"
+      @keydown="onKeyDown"
     >
     </a-auto-complete>
-    <a-button type="primary" @click="handleSearch"> 搜索</a-button>
+    <a-button
+      type="primary"
+      style="width: 75px; margin-left: 50px; transform: scale(1.2)"
+      @click="handleSearch"
+    >
+      搜&nbsp;&nbsp;索
+    </a-button>
     <MyDivider />
     <!-- Tabs 切换 -->
     <a-tabs v-model:activeKey="activeKey" @change="onTabChange">
@@ -33,6 +40,8 @@
       :total="totalNum"
       :simple="true"
       show-quick-jumper
+      @change="onPageChange"
+      hidden="hidden"
     />
   </div>
 </template>
@@ -47,8 +56,8 @@ import { useRoute, useRouter } from "vue-router";
 import myAxios from "@/plugins/myAxios";
 import { message } from "ant-design-vue";
 
-const pageNum = ref(2);
-const totalNum = ref(500);
+// const pageNum = ref(1); // 当前页码
+// const totalNum = ref(1); // 数据总条数
 const postList = ref([]);
 const userList = ref([]);
 const pictureList = ref([]);
@@ -62,8 +71,9 @@ const router = useRouter();
 const initSearchParams = {
   text: "",
 };
-
 const searchParams = ref(initSearchParams);
+
+message.info("欢迎使用聚合搜索平台！");
 
 // 加载不同类型的数据（文章、用户、图片）
 const loadData = async (params: any) => {
@@ -72,13 +82,11 @@ const loadData = async (params: any) => {
     const response = await myAxios.get("/post", { params });
     postList.value = response.data;
   }
-
   // 加载用户数据
   if (activeKey.value === "user") {
     const response = await myAxios.get("/user", { params });
     userList.value = response.data;
   }
-
   // 加载图片数据
   if (activeKey.value === "picture") {
     const response = await myAxios.get("/picture", { params });
@@ -161,6 +169,14 @@ const handleSearch = async () => {
   }
 };
 
+// 监听回车键事件触发搜索
+const onKeyDown = (event: KeyboardEvent) => {
+  // 检查是否按下回车键 (keyCode 13 或 event.key === 'Enter')
+  if (event.key === "Enter") {
+    handleSearch(); // 执行搜索
+  }
+};
+
 // 切换 Tab 时更新请求参数，并清空建议候选项
 const onTabChange = async (key: string) => {
   // 清空搜索建议
@@ -183,7 +199,6 @@ const onTabChange = async (key: string) => {
     const response = await myAxios.get("/picture", { params });
     pictureList.value = response.data;
   }
-
   await router.push({
     path: `/${key}`,
     query: { text: searchText.value },
