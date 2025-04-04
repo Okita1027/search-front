@@ -43,6 +43,83 @@
     <MyDivider />
     <!-- Tabs 切换 -->
     <a-tabs v-model:activeKey="activeKey" @change="onTabChange">
+      <template #rightExtra>
+        <a-button type="primary" @click="showUploadModal">
+          <template #icon><upload-outlined /></template>
+          上传文件
+        </a-button>
+        <!-- 上传文件模态框 -->
+        <a-modal
+          v-model:visible="uploadModalVisible"
+          title="上传文件"
+          @ok="handleUploadOk"
+          :confirmLoading="confirmLoading"
+          @cancel="handleUploadCancel"
+        >
+          <a-form
+            :model="uploadForm"
+            :rules="uploadRules"
+            ref="uploadFormRef"
+            layout="vertical"
+          >
+            <a-form-item label="用户名" name="title">
+              <a-input
+                v-model:value="uploadForm.title"
+                placeholder="请输入用户名"
+              />
+            </a-form-item>
+
+            <a-form-item label="简介" name="profile">
+              <a-textarea
+                v-model:value="uploadForm.profile"
+                placeholder="请输入简介"
+                :rows="3"
+              />
+            </a-form-item>
+
+            <a-form-item label="头像" name="avatarUrl">
+              <a-upload
+                name="avatar"
+                list-type="picture-card"
+                :show-upload-list="false"
+                :before-upload="beforeAvatarUpload"
+                @change="handleAvatarChange"
+              >
+                <img
+                  v-if="uploadForm.avatarUrl"
+                  :src="uploadForm.avatarUrl"
+                  alt="avatar"
+                  style="width: 100%"
+                />
+                <div v-else>
+                  <plus-outlined />
+                  <div style="margin-top: 8px">上传</div>
+                </div>
+              </a-upload>
+            </a-form-item>
+
+            <a-form-item label="文件" name="file">
+              <a-upload-dragger
+                name="file"
+                :before-upload="beforeUpload"
+                @change="handleFileChange"
+                :showUploadList="true"
+                :maxCount="1"
+                :fileList="fileList"
+                :multiple="false"
+              >
+                <p class="ant-upload-drag-icon">
+                  <inbox-outlined />
+                </p>
+                <p class="ant-upload-text">点击或拖拽文件到此区域上传</p>
+                <p class="ant-upload-hint">
+                  支持 JPG/PNG 图片或 MP3/FLAC 音频文件，文件大小不超过10MB
+                </p>
+              </a-upload-dragger>
+            </a-form-item>
+          </a-form>
+        </a-modal>
+      </template>
       <a-tab-pane key="post" tab="文章">
         <PostList :post-list="postList" />
       </a-tab-pane>
@@ -67,8 +144,13 @@ import UserList from "@/components/UserList.vue";
 import MyDivider from "@/components/MyDivider.vue";
 import { useRoute, useRouter } from "vue-router";
 import myAxios from "@/plugins/myAxios";
-import { message } from "ant-design-vue";
+import { message, UploadProps } from "ant-design-vue";
 import AudioList from "@/components/AudioList.vue";
+import {
+  UploadOutlined,
+  PlusOutlined,
+  InboxOutlined,
+} from "@ant-design/icons-vue";
 
 const postList = ref([]);
 const userList = ref([]);
@@ -279,6 +361,198 @@ const onPageChange = () => {
   loadData({
     ...searchParams.value,
   });
+};
+
+// 限制上传文件类型和大小
+const beforeUpload = (file: File) => {
+  const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
+  const isMp3OrFlac = file.type === "audio/mpeg" || file.type === "audio/flac";
+  const isValidType = isJpgOrPng || isMp3OrFlac;
+
+  if (!isValidType) {
+    message.error("只能上传 JPG/PNG 图片或 MP3/FLAC 音频文件!");
+  }
+
+  const isLt10M = file.size / 1024 / 1024 < 10;
+  if (!isLt10M) {
+    message.error("文件必须小于 10MB!");
+  }
+
+  return isValidType && isLt10M;
+};
+
+// 处理上传状态变化
+const handleUploadChange: UploadProps["onChange"] = (info) => {
+  if (info.file.status === "uploading") {
+    message.loading("文件上传中...");
+    return;
+  }
+
+  if (info.file.status === "done") {
+    message.success(`${info.file.name} 上传成功!`);
+
+    // 如果是在对应的标签页，刷新数据
+    if (
+      (info.file.type?.includes("image") && activeKey.value === "picture") ||
+      (info.file.type?.includes("audio") && activeKey.value === "audio")
+    ) {
+      loadData(searchParams.value);
+    }
+  } else if (info.file.status === "error") {
+    message.error(
+      `${info.file.name} 上传失败: ${info.file.response?.message || "未知错误"}`
+    );
+  }
+};
+
+// 添加新的上传文件功能
+const uploadModalVisible = ref(false);
+const confirmLoading = ref(false);
+const uploadForm = ref({
+  title: "",
+  profile: "",
+  avatarUrl: "",
+  file: null as File | null,
+});
+const uploadRules = {
+  title: [{ required: true, message: "请输入用户名" }],
+  profile: [{ max: 100, message: "简介长度不能超过100个字符" }],
+};
+const uploadFormRef = ref();
+const fileList = ref<any[]>([]);
+
+const showUploadModal = () => {
+  uploadModalVisible.value = true;
+};
+
+const handleUploadOk = async () => {
+  if (!uploadForm.value.title) {
+    message.error("请输入用户名");
+    return;
+  }
+
+  if (!fileList.value.length || !fileList.value[0]?.originFileObj) {
+    message.error("请选择要上传的文件");
+    return;
+  }
+
+  confirmLoading.value = true;
+  try {
+    // 创建FormData对象来提交表单数据
+    const formData = new FormData();
+    formData.append("title", uploadForm.value.title);
+    if (uploadForm.value.profile) {
+      formData.append("profile", uploadForm.value.profile);
+    }
+    if (uploadForm.value.avatarUrl) {
+      formData.append("avatarUrl", uploadForm.value.avatarUrl);
+    }
+    formData.append("file", fileList.value[0].originFileObj);
+
+    // 发送请求到后端
+    const response = await myAxios.post("/file/upload", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    if (response.status === 200) {
+      message.success("上传成功");
+      // 重置表单
+      uploadForm.value = {
+        title: "",
+        profile: "",
+        avatarUrl: "",
+        file: null,
+      };
+      fileList.value = [];
+      // 关闭对话框
+      uploadModalVisible.value = false;
+      // 刷新数据
+      loadData(searchParams.value);
+    } else {
+      message.error(`上传失败: ${response.data?.message || "未知错误"}`);
+    }
+  } catch (error: any) {
+    message.error(`上传失败: ${error?.message || "未知错误"}`);
+  } finally {
+    confirmLoading.value = false;
+  }
+};
+
+const handleUploadCancel = () => {
+  // 重置表单
+  uploadForm.value = {
+    title: "",
+    profile: "",
+    avatarUrl: "",
+    file: null,
+  };
+  fileList.value = [];
+  uploadModalVisible.value = false;
+};
+
+const beforeAvatarUpload = (file: File) => {
+  const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
+  const isLt10M = file.size / 1024 / 1024 < 10;
+  if (!isJpgOrPng) {
+    message.error("头像必须是 JPG/PNG 格式!");
+  }
+  if (!isLt10M) {
+    message.error("头像文件必须小于 10MB!");
+  }
+  return isJpgOrPng && isLt10M;
+};
+
+const handleAvatarChange = (info: any) => {
+  if (info.file.status === "done") {
+    // 如果你的后端返回了URL
+    if (
+      info.file.response &&
+      typeof info.file.response === "object" &&
+      "url" in info.file.response
+    ) {
+      uploadForm.value.avatarUrl = info.file.response.url;
+    } else {
+      // 如果没有返回URL，可以使用本地预览
+      getBase64(info.file.originFileObj, (url: string) => {
+        uploadForm.value.avatarUrl = url;
+      });
+    }
+    message.success(`${info.file.name} 上传成功!`);
+  } else if (info.file.status === "error") {
+    const errorMsg =
+      typeof info.file.response === "object" &&
+      info.file.response &&
+      "message" in info.file.response
+        ? info.file.response.message
+        : "未知错误";
+    message.error(`${info.file.name} 上传失败: ${errorMsg}`);
+  }
+};
+
+// 辅助函数：将文件转换为Base64用于预览
+const getBase64 = (file: File, callback: (url: string) => void) => {
+  const reader = new FileReader();
+  reader.addEventListener("load", () => callback(reader.result as string));
+  reader.readAsDataURL(file);
+};
+
+const handleFileChange = (info: any) => {
+  fileList.value = info.fileList.slice(-1);
+  const file = info.file;
+
+  if (file.status === "done") {
+    message.success(`${file.name} 上传成功!`);
+  } else if (file.status === "error") {
+    const errorMsg =
+      typeof file.response === "object" &&
+      file.response &&
+      "message" in file.response
+        ? file.response.message
+        : "未知错误";
+    message.error(`${file.name} 上传失败: ${errorMsg}`);
+  }
 };
 </script>
 
