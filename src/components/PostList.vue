@@ -4,7 +4,9 @@
       <a-list-item>
         <a-list-item-meta :description="item.content">
           <template #title>
-            <span v-html="item.title"></span>
+            <a @click="goToDetail(item.title)" class="post-title">
+              <span v-html="item.title"></span>
+            </a>
           </template>
         </a-list-item-meta>
       </a-list-item>
@@ -14,6 +16,7 @@
 
 <script setup lang="ts">
 import { withDefaults, defineProps } from "vue";
+import { useRouter } from "vue-router";
 
 interface Props {
   postList: any[];
@@ -22,10 +25,28 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   postList: () => [],
 });
+
+const router = useRouter();
+
+const goToDetail = (title: string) => {
+  router.push({
+    path: "/post/detail",
+    query: { text: title },
+  });
+};
 </script>
 
 <style>
 em {
   color: red;
+}
+
+.post-title {
+  cursor: pointer;
+  color: #1890ff;
+}
+
+.post-title:hover {
+  text-decoration: underline;
 }
 </style>
