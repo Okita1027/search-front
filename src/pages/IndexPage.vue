@@ -309,7 +309,7 @@ const handleSearch = async () => {
     }
   } else if (activeKey.value === "audio") {
     try {
-      const response = await myAxios.get("/file/audio", { params });
+      const response = await myAxios.get("/audio", { params });
       audioList.value = response.data;
     } catch (error) {
       message.error("获取音频失败");

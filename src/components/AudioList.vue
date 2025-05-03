@@ -1,20 +1,20 @@
 <template>
   <a-list
-    item-layout="horizontal"
-    :grid="{ gutter: 10, column: 3 }"
     :data-source="props.audioList"
+    :grid="{ gutter: 10, column: 3 }"
+    item-layout="horizontal"
   >
     <template #renderItem="{ item, index }">
       <a-list-item>
         <a-card hoverable>
           <template #cover>
-            <audio controls :id="`audio-${index}`" @play="handlePlay(index)">
+            <audio :id="`audio-${index}`" controls @play="handlePlay(index)">
               <source :src="item.filePath" type="audio/mpeg" />
             </audio>
           </template>
           <a-card-meta>
             <template #title>
-              <div class="music-title" :title="item.fileName">
+              <div :title="item.fileName" class="music-title">
                 {{ item.fileName }}
               </div>
             </template>
@@ -25,8 +25,8 @@
   </a-list>
 </template>
 
-<script setup lang="ts">
-import { withDefaults, defineProps, ref } from "vue";
+<script lang="ts" setup>
+import { defineProps, ref, withDefaults } from "vue";
 
 interface Props {
   audioList: any[];
