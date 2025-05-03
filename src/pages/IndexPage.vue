@@ -11,7 +11,7 @@
         transform: scale(1.2);
       "
     >
-      <a-select-option value="default">默认</a-select-option>
+      <a-select-option value="default">系统检索</a-select-option>
       <a-select-option value="baidu">百度</a-select-option>
       <a-select-option value="bing">Bing</a-select-option>
       <a-select-option value="yandex">Yandex</a-select-option>
@@ -45,7 +45,9 @@
     <a-tabs v-model:activeKey="activeKey" @change="onTabChange">
       <template #rightExtra>
         <a-button type="primary" @click="showUploadModal">
-          <template #icon><upload-outlined /></template>
+          <template #icon>
+            <upload-outlined />
+          </template>
           上传文件
         </a-button>
         <!-- 上传文件模态框 -->
@@ -143,20 +145,17 @@ import PictureList from "@/components/PictureList.vue";
 import UserList from "@/components/UserList.vue";
 import MyDivider from "@/components/MyDivider.vue";
 import { useRoute, useRouter } from "vue-router";
-import myAxios from "@/plugins/myAxios";
 import { message, UploadProps } from "ant-design-vue";
 import AudioList from "@/components/AudioList.vue";
-import {
-  UploadOutlined,
-  PlusOutlined,
-  InboxOutlined,
-} from "@ant-design/icons-vue";
+import { InboxOutlined, PlusOutlined, UploadOutlined } from "@ant-design/icons-vue";
+import { audioService, fileUploadService, pictureService, postService, userService } from "@/services";
+import { Audio, Picture, Post, User } from "@/types";
 
-const postList = ref([]);
-const userList = ref([]);
-const pictureList = ref([]);
-const audioList = ref([]);
-const suggestions = ref([]); // 用于存储搜索建议
+const postList = ref<Post[]>([]);
+const userList = ref<User[]>([]);
+const pictureList = ref<Picture[]>([]);
+const audioList = ref<Audio[]>([]);
+const suggestions = ref<{ value: string }[]>([]);
 const searchText = ref(""); // 存储输入框的搜索文本
 const activeKey = ref("post"); // 当前激活的 Tab，默认为文章 Tab
 const selectedEngine = ref("default");
@@ -165,7 +164,7 @@ const route = useRoute();
 const router = useRouter();
 
 const initSearchParams = {
-  text: "",
+  text: ""
 };
 const searchParams = ref(initSearchParams);
 
@@ -179,22 +178,22 @@ if (!localStorage.getItem("welcomeShown")) {
 const loadData = async (params: any) => {
   // 加载文章数据
   if (activeKey.value === "post") {
-    const response = await myAxios.get("/post", { params });
+    const response = await postService.getPostList(params);
     postList.value = response.data;
   }
   // 加载用户数据
   if (activeKey.value === "user") {
-    const response = await myAxios.get("/user", { params });
+    const response = await userService.getUserList(params);
     userList.value = response.data;
   }
   // 加载图片数据
   if (activeKey.value === "picture") {
-    const response = await myAxios.get("/picture", { params });
+    const response = await pictureService.getPictureList(params);
     pictureList.value = response.data;
   }
   // 加载音频数据
   if (activeKey.value === "audio") {
-    const response = await myAxios.get("/file/audio", { params });
+    const response = await audioService.getAudioList(params);
     audioList.value = response.data;
   }
 };
@@ -203,7 +202,7 @@ const loadData = async (params: any) => {
 watchEffect(() => {
   searchParams.value = {
     ...initSearchParams,
-    text: (route.query.text as string) || "",
+    text: (route.query.text as string) || ""
   };
   loadData(searchParams.value);
 });
@@ -219,11 +218,9 @@ const onSearch = async (value: string) => {
   // 根据选中的 Tab 获取建议
   if (activeKey.value === "post" && value.trim()) {
     try {
-      const response = await myAxios.get("/post/suggestion", {
-        params: { suggestText: value },
-      });
+      const response = await postService.getPostSuggestion(value);
       suggestions.value = response.data.map((item: string) => ({
-        value: item,
+        value: item
       }));
     } catch (error) {
       message.error("获取搜索建议失败");
@@ -234,9 +231,7 @@ const onSearch = async (value: string) => {
 // 当选择某个搜索建议时，发送请求获取最终数据
 const onSelect = async (selectedText: string) => {
   try {
-    const response = await myAxios.get("/post", {
-      params: { text: selectedText },
-    });
+    const response = await postService.getPostList({ text: selectedText });
     postList.value = response.data;
   } catch (error) {
     message.error("获取文章失败");
@@ -288,28 +283,28 @@ const handleSearch = async () => {
   // 根据 activeKey 确定请求的接口
   if (activeKey.value === "post") {
     try {
-      const response = await myAxios.get("/post", { params });
+      const response = await postService.getPostList(params);
       postList.value = response.data;
     } catch (error) {
       message.error("获取文章失败");
     }
   } else if (activeKey.value === "picture") {
     try {
-      const response = await myAxios.get("/picture", { params });
+      const response = await pictureService.getPictureList(params);
       pictureList.value = response.data;
     } catch (error) {
       message.error("获取图片失败");
     }
   } else if (activeKey.value === "user") {
     try {
-      const response = await myAxios.get("/user", { params });
+      const response = await userService.getUserList(params);
       userList.value = response.data;
     } catch (error) {
       message.error("获取用户失败");
     }
   } else if (activeKey.value === "audio") {
     try {
-      const response = await myAxios.get("/audio", { params });
+      const response = await audioService.getAudioList(params);
       audioList.value = response.data;
     } catch (error) {
       message.error("获取音频失败");
@@ -338,28 +333,28 @@ const onTabChange = async (key: string) => {
 
   // 根据点击的 tab 来决定请求哪个接口
   if (key === "post") {
-    const response = await myAxios.get("/post", { params });
+    const response = await postService.getPostList(params);
     postList.value = response.data;
   } else if (key === "user" && searchText.value !== "") {
-    const response = await myAxios.get("/user", { params });
+    const response = await userService.getUserList(params);
     userList.value = response.data;
   } else if (key === "picture") {
-    const response = await myAxios.get("/picture", { params });
+    const response = await pictureService.getPictureList(params);
     pictureList.value = response.data;
   } else if (key === "audio") {
-    const response = await myAxios.get("/file/audio", { params });
+    const response = await audioService.getAudioList(params);
     audioList.value = response.data;
   }
   await router.push({
     path: `/${key}`,
-    query: { text: searchText.value },
+    query: { text: searchText.value }
   });
 };
 
 // 页面切换函数
 const onPageChange = () => {
   loadData({
-    ...searchParams.value,
+    ...searchParams.value
   });
 };
 
@@ -400,7 +395,7 @@ const handleUploadChange: UploadProps["onChange"] = (info) => {
     }
   } else if (info.file.status === "error") {
     message.error(
-      `${info.file.name} 上传失败: ${info.file.response?.message || "未知错误"}`
+      `${info.file.name} 上传失败: ${info.file.error || "未知错误"}`
     );
   }
 };
@@ -412,11 +407,11 @@ const uploadForm = ref({
   title: "",
   profile: "",
   avatarUrl: "",
-  file: null as File | null,
+  file: null as File | null
 });
 const uploadRules = {
   title: [{ required: true, message: "请输入用户名" }],
-  profile: [{ max: 100, message: "简介长度不能超过100个字符" }],
+  profile: [{ max: 100, message: "简介长度不能超过100个字符" }]
 };
 const uploadFormRef = ref();
 const fileList = ref<any[]>([]);
@@ -438,41 +433,30 @@ const handleUploadOk = async () => {
 
   confirmLoading.value = true;
   try {
-    // 创建FormData对象来提交表单数据
-    const formData = new FormData();
-    formData.append("title", uploadForm.value.title);
-    if (uploadForm.value.profile) {
-      formData.append("profile", uploadForm.value.profile);
-    }
-    if (uploadForm.value.avatarUrl) {
-      formData.append("avatarUrl", uploadForm.value.avatarUrl);
-    }
-    formData.append("file", fileList.value[0].originFileObj);
+    // 使用fileUploadService上传文件
+    const fileUploadRequest = {
+      title: uploadForm.value.title,
+      profile: uploadForm.value.profile,
+      avatarUrl: uploadForm.value.avatarUrl,
+      file: fileList.value[0].originFileObj
+    };
 
-    // 发送请求到后端
-    const response = await myAxios.post("/file/upload", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    await fileUploadService.uploadFile(fileUploadRequest);
 
-    if (response.status === 200) {
-      message.success("上传成功");
-      // 重置表单
-      uploadForm.value = {
-        title: "",
-        profile: "",
-        avatarUrl: "",
-        file: null,
-      };
-      fileList.value = [];
-      // 关闭对话框
-      uploadModalVisible.value = false;
-      // 刷新数据
-      loadData(searchParams.value);
-    } else {
-      message.error(`上传失败: ${response.data?.message || "未知错误"}`);
-    }
+    // 上传成功
+    message.success("上传成功");
+    // 重置表单
+    uploadForm.value = {
+      title: "",
+      profile: "",
+      avatarUrl: "",
+      file: null
+    };
+    fileList.value = [];
+    // 关闭对话框
+    uploadModalVisible.value = false;
+    // 刷新数据
+    loadData(searchParams.value);
   } catch (error: any) {
     message.error(`上传失败: ${error?.message || "未知错误"}`);
   } finally {
@@ -486,7 +470,7 @@ const handleUploadCancel = () => {
     title: "",
     profile: "",
     avatarUrl: "",
-    file: null,
+    file: null
   };
   fileList.value = [];
   uploadModalVisible.value = false;

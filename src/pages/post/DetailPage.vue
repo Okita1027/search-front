@@ -113,7 +113,8 @@ import { ref, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
 import { message } from "ant-design-vue";
 import { LikeOutlined } from "@ant-design/icons-vue";
-import myAxios from "@/plugins/myAxios";
+import { postService } from "@/services";
+import { Post, PostComment } from "@/types";
 
 // 定义文章详情和评论类型
 interface Comment {
@@ -151,10 +152,7 @@ const expandedGroups = ref<Record<number, boolean>>({});
 // 获取文章详情
 const fetchPostDetail = async () => {
   try {
-    const response = await myAxios.get(`/post/detail`, {
-      params: { text: route.query.text },
-    });
-
+    const response = await postService.getPostDetail({ id: route.query.text as string });
     postDetail.value = response.data;
   } catch (error) {
     console.error("获取文章详情失败:", error);
@@ -267,14 +265,14 @@ const submitComment = async () => {
   try {
     // 构造评论请求参数
     const params = {
-      postTitle: postDetail.value?.title,
+      postId: postDetail.value?.id || '',
       content: commentContent.value,
       parentUsername: replyTo.value?.currentUsername || null,
       parentNickname: replyTo.value?.currentNickname || null,
     };
 
-    // 这里需要根据实际接口进行调整
-    await myAxios.post("/post/comment", params);
+    // 使用service发送请求
+    await postService.addPostComment(params);
 
     message.success("评论发布成功");
     commentContent.value = "";
