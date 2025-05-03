@@ -2,15 +2,14 @@
  * 文章信息
  */
 export interface Post {
-  id: string;
-  title: string;
+  id: bigint;
+  title?: string;
   content?: string;
-  tags?: string[];
-  userId?: string;
   createTime?: string;
   updateTime?: string;
-  thumbNum?: number;
-  favourNum?: number;
+  createBy?: string;
+  updateBy?: string;
+  isDeleted?: bigint;
 }
 
 /**

@@ -115,7 +115,7 @@
                 </p>
                 <p class="ant-upload-text">点击或拖拽文件到此区域上传</p>
                 <p class="ant-upload-hint">
-                  支持 JPG/PNG 图片或 MP3/FLAC 音频文件，文件大小不超过10MB
+                  支持 JPG/PNG 图片、MP3/FLAC 音频或 MP4/WebM 视频文件，文件大小不超过10MB
                 </p>
               </a-upload-dragger>
             </a-form-item>
@@ -134,6 +134,9 @@
       <a-tab-pane key="audio" tab="音频">
         <AudioList :audio-list="audioList" />
       </a-tab-pane>
+      <a-tab-pane key="video" tab="视频">
+        <VideoList :video-list="videoList" />
+      </a-tab-pane>
     </a-tabs>
   </div>
 </template>
@@ -147,14 +150,16 @@ import MyDivider from "@/components/MyDivider.vue";
 import { useRoute, useRouter } from "vue-router";
 import { message, UploadProps } from "ant-design-vue";
 import AudioList from "@/components/AudioList.vue";
+import VideoList from "@/components/VideoList.vue";
 import { InboxOutlined, PlusOutlined, UploadOutlined } from "@ant-design/icons-vue";
-import { audioService, fileUploadService, pictureService, postService, userService } from "@/services";
-import { Audio, Picture, Post, User } from "@/types";
+import { audioService, fileUploadService, pictureService, postService, userService, videoService } from "@/services";
+import { Audio, Picture, Post, User, Video } from "@/types";
 
 const postList = ref<Post[]>([]);
 const userList = ref<User[]>([]);
 const pictureList = ref<Picture[]>([]);
 const audioList = ref<Audio[]>([]);
+const videoList = ref<Video[]>([]);
 const suggestions = ref<{ value: string }[]>([]);
 const searchText = ref(""); // 存储输入框的搜索文本
 const activeKey = ref("post"); // 当前激活的 Tab，默认为文章 Tab
@@ -174,7 +179,7 @@ if (!localStorage.getItem("welcomeShown")) {
   localStorage.setItem("welcomeShown", "true");
 }
 
-// 加载不同类型的数据（文章、用户、图片）
+// 加载不同类型的数据（文章、用户、图片、音频、视频）
 const loadData = async (params: any) => {
   // 加载文章数据
   if (activeKey.value === "post") {
@@ -195,6 +200,11 @@ const loadData = async (params: any) => {
   if (activeKey.value === "audio") {
     const response = await audioService.getAudioList(params);
     audioList.value = response.data;
+  }
+  // 加载视频数据
+  if (activeKey.value === "video") {
+    const response = await videoService.getVideoList(params);
+    videoList.value = response.data;
   }
 };
 
@@ -309,6 +319,13 @@ const handleSearch = async () => {
     } catch (error) {
       message.error("获取音频失败");
     }
+  } else if (activeKey.value === "video") {
+    try {
+      const response = await videoService.getVideoList(params);
+      videoList.value = response.data;
+    } catch (error) {
+      message.error("获取视频失败");
+    }
   }
 };
 
@@ -344,6 +361,9 @@ const onTabChange = async (key: string) => {
   } else if (key === "audio") {
     const response = await audioService.getAudioList(params);
     audioList.value = response.data;
+  } else if (key === "video") {
+    const response = await videoService.getVideoList(params);
+    videoList.value = response.data;
   }
   await router.push({
     path: `/${key}`,
@@ -362,10 +382,11 @@ const onPageChange = () => {
 const beforeUpload = (file: File) => {
   const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
   const isMp3OrFlac = file.type === "audio/mpeg" || file.type === "audio/flac";
-  const isValidType = isJpgOrPng || isMp3OrFlac;
+  const isMp4OrWebm = file.type === "video/mp4" || file.type === "video/webm";
+  const isValidType = isJpgOrPng || isMp3OrFlac || isMp4OrWebm;
 
   if (!isValidType) {
-    message.error("只能上传 JPG/PNG 图片或 MP3/FLAC 音频文件!");
+    message.error("只能上传 JPG/PNG 图片、MP3/FLAC 音频或 MP4/WebM 视频文件!");
   }
 
   const isLt10M = file.size / 1024 / 1024 < 10;
@@ -389,7 +410,8 @@ const handleUploadChange: UploadProps["onChange"] = (info) => {
     // 如果是在对应的标签页，刷新数据
     if (
       (info.file.type?.includes("image") && activeKey.value === "picture") ||
-      (info.file.type?.includes("audio") && activeKey.value === "audio")
+      (info.file.type?.includes("audio") && activeKey.value === "audio") ||
+      (info.file.type?.includes("video") && activeKey.value === "video")
     ) {
       loadData(searchParams.value);
     }

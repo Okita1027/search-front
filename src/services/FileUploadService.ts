@@ -8,13 +8,8 @@ import { ApiResponse, FileUploadRequest, FileUploadResponse } from '@/types';
  */
 const uploadFile = async (data: FileUploadRequest): Promise<ApiResponse<FileUploadResponse>> => {
   const formData = new FormData();
-  formData.append('title', data.title);
-  if (data.profile) {
-    formData.append('profile', data.profile);
-  }
-  if (data.avatarUrl) {
-    formData.append('avatarUrl', data.avatarUrl);
-  }
+  formData.append('fileName', data.fileName);
+  formData.append('filePath', data.filePath);
   formData.append('file', data.file);
 
   return await myAxios.post('/upload', formData, {

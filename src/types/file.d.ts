@@ -2,9 +2,8 @@
  * 文件上传请求
  */
 export interface FileUploadRequest {
-  title: string;
-  profile?: string;
-  avatarUrl?: string;
+  fileName: string;
+  filePath: string;
   file: File;
 }
 

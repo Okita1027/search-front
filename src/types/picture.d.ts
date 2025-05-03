@@ -2,13 +2,15 @@
  * 图片信息
  */
 export interface Picture {
-  id: string;
-  url: string;
-  title?: string;
-  description?: string;
-  tags?: string[];
+  id: bigint;
+  fileName: string;
+  filePath: string;
+  source: bigint;
   createTime?: string;
-  userId?: string;
+  updateTime?: string;
+  createBy?: string;
+  updateBy?: string;
+  isDeleted?: bigint;
 }
 
 /**

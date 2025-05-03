@@ -2,12 +2,21 @@
  * 用户信息
  */
 export interface User {
-  id: string;
-  nickName: string;
+  id?: bigint;
+  username?: string;
+  password?: string;
+  nickName?: string;
+  gender?: bigint;
   profile?: string;
+  phone?: string;
+  email?: string;
   avatarUrl?: string;
+  favorComment?: string[];
+  status?: bigint;
+  editTime?: string;
   createTime?: string;
   updateTime?: string;
+  isDeleted?: bigint;
 }
 
 /**

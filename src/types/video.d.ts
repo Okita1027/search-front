@@ -1,10 +1,10 @@
 /**
- * 音频信息
+ * 视频信息
  */
-export interface Audio {
-  id?: bigint;
-  fileName?: string;
+export interface Video {
+  id?: string;
   filePath?: string;
+  fileName?: string;
   createTime?: string;
   updateTime?: string;
   createBy?: string;
@@ -13,9 +13,9 @@ export interface Audio {
 }
 
 /**
- * 音频查询参数
+ * 视频查询参数
  */
-export interface AudioSearchParams {
+export interface VideoSearchParams {
   text?: string;
   pageNum?: number;
   pageSize?: number;
