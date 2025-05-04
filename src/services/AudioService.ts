@@ -10,6 +10,7 @@ const getAudioList = async (params: AudioSearchParams): Promise<ApiResponse<Audi
   return await myAxios.get('/audio', { params });
 };
 
+
 export default {
-  getAudioList
+  getAudioList,
 };

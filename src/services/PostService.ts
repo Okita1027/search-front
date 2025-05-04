@@ -35,7 +35,12 @@ const getPostSuggestion = async (suggestText: string): Promise<ApiResponse<strin
  * @param params - 评论参数
  * @returns 操作结果
  */
-const addPostComment = async (params: AddCommentParams): Promise<ApiResponse<boolean>> => {
+const addPostComment = async (params: {
+  postId: string, 
+  content: string,
+  parentUsername?: string | null,
+  parentNickname?: string | null
+}): Promise<ApiResponse<boolean>> => {
   return await myAxios.post('/post/comment', params);
 };
 

@@ -2,8 +2,6 @@
  * 文件上传请求
  */
 export interface FileUploadRequest {
-  fileName: string;
-  filePath: string;
   file: File;
 }
 
@@ -12,7 +10,8 @@ export interface FileUploadRequest {
  */
 export interface FileUploadResponse {
   id: string;
-  url: string;
-  title: string;
+  url?: string;
+  fileName?: string;
+  filePath?: string;
   type: string; // 'audio' | 'picture' | 'video' | 'other'
 } 

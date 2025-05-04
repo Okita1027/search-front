@@ -4,6 +4,7 @@ import pictureService from './PictureService';
 import audioService from './AudioService';
 import videoService from './VideoService';
 import fileUploadService from './FileUploadService';
+import authService from './AuthService';
 
 export {
   postService,
@@ -11,7 +12,8 @@ export {
   pictureService,
   audioService,
   videoService,
-  fileUploadService
+  fileUploadService,
+  authService
 };
 
 export default {
@@ -20,5 +22,6 @@ export default {
   pictureService,
   audioService,
   videoService,
-  fileUploadService
+  fileUploadService,
+  authService
 }; 

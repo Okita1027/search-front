@@ -3,13 +3,24 @@
  */
 export interface Video {
   id?: string;
-  filePath?: string;
   fileName?: string;
+  filePath?: string;
+  title?: string;
+  description?: string;
+  tags?: string[];
+  duration?: number;
   createTime?: string;
   updateTime?: string;
-  createBy?: string;
-  updateBy?: string;
-  isDeleted?: bigint;
+  userId?: string;
+  isDeleted?: number;
+}
+
+/**
+ * 视频显示对象
+ */
+export interface VideoVO {
+  fileName: string;
+  filePath: string;
 }
 
 /**

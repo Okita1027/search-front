@@ -2,14 +2,12 @@ import myAxios from '@/plugins/myAxios';
 import { ApiResponse, FileUploadRequest, FileUploadResponse } from '@/types';
 
 /**
- * 上传文件
+ * 上传文件（视频、音频、图片）
  * @param formData - 表单数据
  * @returns 上传结果
  */
 const uploadFile = async (data: FileUploadRequest): Promise<ApiResponse<FileUploadResponse>> => {
   const formData = new FormData();
-  formData.append('fileName', data.fileName);
-  formData.append('filePath', data.filePath);
   formData.append('file', data.file);
 
   return await myAxios.post('/upload', formData, {

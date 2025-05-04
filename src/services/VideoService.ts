@@ -11,5 +11,5 @@ const getVideoList = async (params: VideoSearchParams): Promise<ApiResponse<Vide
 };
 
 export default {
-  getVideoList
+  getVideoList,
 }; 

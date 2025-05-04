@@ -2,14 +2,25 @@
  * 音频信息
  */
 export interface Audio {
-  id?: bigint;
+  id?: string;
   fileName?: string;
   filePath?: string;
+  title?: string;
+  description?: string;
+  tags?: string[];
+  duration?: number;
   createTime?: string;
   updateTime?: string;
-  createBy?: string;
-  updateBy?: string;
-  isDeleted?: bigint;
+  userId?: string;
+  isDeleted?: number;
+}
+
+/**
+ * 音频显示对象
+ */
+export interface AudioVO {
+  fileName: string;
+  filePath: string;
 }
 
 /**

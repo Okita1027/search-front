@@ -2,15 +2,22 @@
  * 图片信息
  */
 export interface Picture {
-  id: bigint;
-  fileName: string;
-  filePath: string;
-  source: bigint;
+  id?: string;
+  pictureUrl?: string;
+  title?: string;
+  description?: string;
+  tags?: string[];
   createTime?: string;
   updateTime?: string;
-  createBy?: string;
-  updateBy?: string;
-  isDeleted?: bigint;
+  userId?: string;
+  isDeleted?: number;
+}
+
+/**
+ * 图片显示对象
+ */
+export interface PictureVO {
+  pictureUrl: string;
 }
 
 /**

@@ -5,4 +5,5 @@ export * from './post';
 export * from './picture';
 export * from './audio';
 export * from './video';
-export * from './file'; 
+export * from './file';
+export * from './auth'; 

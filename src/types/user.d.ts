@@ -2,21 +2,37 @@
  * 用户信息
  */
 export interface User {
-  id?: bigint;
+  id?: string;
   username?: string;
   password?: string;
-  nickName?: string;
-  gender?: bigint;
+  nickname?: string;
+  gender?: number; // 0保密，1男性，2女性
   profile?: string;
   phone?: string;
   email?: string;
   avatarUrl?: string;
-  favorComment?: string[];
-  status?: bigint;
+  favorComment?: string;
+  status?: number; // 0停用，1启用
   editTime?: string;
   createTime?: string;
   updateTime?: string;
-  isDeleted?: bigint;
+  isDeleted?: number;
+}
+
+/**
+ * 用户DTO
+ */
+export interface UserDTO extends User {
+  rawPassword?: string; // 原始密码，用于修改密码
+}
+
+/**
+ * 用户显示对象
+ */
+export interface UserVO {
+  nickname: string;
+  profile: string;
+  avatarUrl: string;
 }
 
 /**
