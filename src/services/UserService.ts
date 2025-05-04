@@ -55,13 +55,23 @@ const updateUserInfo = async (userData: any): Promise<ApiResponse<any>> => {
 };
 
 /**
- * 评论点赞
+ * 给评论点赞
  * @param commentId - 评论ID
  * @returns 点赞结果
  */
 const favorComment = async (commentId: number): Promise<ApiResponse<any>> => {
   return await myAxios.post('/user/favor', null, { params: { commentId } });
 };
+
+/**
+ * 评论
+ * @param articleTitle 文章标题
+ * @param commentId 父评论ID
+ * @param commentContent 评论内容
+ */
+const comment = async (articleTitle: string, commentId: number, commentContent: string): Promise<ApiResponse<any>> => {
+  return await myAxios.post('/user/comment', null, { params: { articleTitle, commentId, commentContent } });
+}
 
 export default {
   getUserList,
@@ -70,5 +80,6 @@ export default {
   logoutUser,
   getUserInfo,
   updateUserInfo,
-  favorComment
+  favorComment,
+  comment,
 };
