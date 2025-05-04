@@ -3,7 +3,7 @@ import userService from './UserService';
 import pictureService from './PictureService';
 import audioService from './AudioService';
 import videoService from './VideoService';
-import fileUploadService from './FileUploadService';
+import fileUploadService from './UploadService';
 import authService from './AuthService';
 
 export {

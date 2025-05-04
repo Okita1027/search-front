@@ -5,7 +5,9 @@ import { ApiResponse } from "@/types/common";
 const instance: AxiosInstance = axios.create({
   baseURL: "http://localhost:8888/api",
   timeout: 10000,
-  headers: {}
+  headers: {
+
+  }
 });
 
 // 添加响应拦截器

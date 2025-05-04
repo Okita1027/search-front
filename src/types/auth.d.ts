@@ -15,17 +15,6 @@ export interface SaTokenInfo {
   tag: string;
 }
 
-/**
- * 管理员信息
- */
-export interface Admin {
-  id?: number;
-  username: string;
-  password: string;
-  createTime?: string;
-  updateTime?: string;
-  isDeleted?: number;
-}
 
 /**
  * 图片验证码

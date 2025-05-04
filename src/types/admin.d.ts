@@ -2,12 +2,12 @@
  * 管理员信息
  */
 export interface Admin {
-  id?: bigint;
+  id?: number;
   username?: string;
   password?: string;
   createTime?: string;
   updateTime?: string;
-  isDeleted?: bigint;
+  isDeleted?: number;
 }
 
 export interface AdminVO {
