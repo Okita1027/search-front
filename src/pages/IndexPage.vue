@@ -1,7 +1,6 @@
 <template>
   <!-- 无法单独改变组件的大小，故放大整个页面 -->
   <div style="transform: scale(1.5); margin-top: 25px; transform-origin: top">
-    <!-- 写一个选择框，内容是百度、必应、谷歌、搜狗搜索地址 -->
     <a-select
       v-model:value="selectedEngine"
       style="
@@ -44,7 +43,7 @@
     <!-- Tabs 切换 -->
     <a-tabs v-model:activeKey="activeKey" @change="onTabChange">
       <template #rightExtra>
-        <a-button type="primary" @click="showUploadModal">
+        <a-button type="primary" @click="handleUploadClick">
           <template #icon>
             <upload-outlined />
           </template>
@@ -64,42 +63,6 @@
             ref="uploadFormRef"
             layout="vertical"
           >
-            <a-form-item label="用户名" name="title">
-              <a-input
-                v-model:value="uploadForm.title"
-                placeholder="请输入用户名"
-              />
-            </a-form-item>
-
-            <a-form-item label="简介" name="profile">
-              <a-textarea
-                v-model:value="uploadForm.profile"
-                placeholder="请输入简介"
-                :rows="3"
-              />
-            </a-form-item>
-
-            <a-form-item label="头像" name="avatarUrl">
-              <a-upload
-                name="avatar"
-                list-type="picture-card"
-                :show-upload-list="false"
-                :before-upload="beforeAvatarUpload"
-                @change="handleAvatarChange"
-              >
-                <img
-                  v-if="uploadForm.avatarUrl"
-                  :src="uploadForm.avatarUrl"
-                  alt="avatar"
-                  style="width: 100%"
-                />
-                <div v-else>
-                  <plus-outlined />
-                  <div style="margin-top: 8px">上传</div>
-                </div>
-              </a-upload>
-            </a-form-item>
-
             <a-form-item label="文件" name="file">
               <a-upload-dragger
                 name="file"
@@ -153,6 +116,7 @@ import AudioList from "@/components/AudioList.vue";
 import VideoList from "@/components/VideoList.vue";
 import { InboxOutlined, PlusOutlined, UploadOutlined } from "@ant-design/icons-vue";
 import { audioService, fileUploadService, pictureService, postService, userService, videoService } from "@/services";
+import { authService } from "@/services";
 import { Audio, Picture, Post, User, Video } from "@/types";
 
 const postList = ref<Post[]>([]);
@@ -426,28 +390,29 @@ const handleUploadChange: UploadProps["onChange"] = (info) => {
 const uploadModalVisible = ref(false);
 const confirmLoading = ref(false);
 const uploadForm = ref({
-  title: "",
-  profile: "",
-  avatarUrl: "",
   file: null as File | null
 });
 const uploadRules = {
-  title: [{ required: true, message: "请输入用户名" }],
-  profile: [{ max: 100, message: "简介长度不能超过100个字符" }]
+  file: [{ required: true, message: "请选择要上传的文件" }]
 };
 const uploadFormRef = ref();
 const fileList = ref<any[]>([]);
 
-const showUploadModal = () => {
+// 上传文件按钮点击事件
+const handleUploadClick = () => {
+  // 检查用户是否已登录
+  if (!authService.isLoggedIn()) {
+    message.warning('请先登录后再上传文件');
+    // 跳转到登录页面
+    router.push('/login');
+    return;
+  }
+
+  // 已登录，显示上传模态框
   uploadModalVisible.value = true;
 };
 
 const handleUploadOk = async () => {
-  if (!uploadForm.value.title) {
-    message.error("请输入用户名");
-    return;
-  }
-
   if (!fileList.value.length || !fileList.value[0]?.originFileObj) {
     message.error("请选择要上传的文件");
     return;
@@ -457,9 +422,6 @@ const handleUploadOk = async () => {
   try {
     // 使用fileUploadService上传文件
     const fileUploadRequest = {
-      title: uploadForm.value.title,
-      profile: uploadForm.value.profile,
-      avatarUrl: uploadForm.value.avatarUrl,
       file: fileList.value[0].originFileObj
     };
 
@@ -469,9 +431,6 @@ const handleUploadOk = async () => {
     message.success("上传成功");
     // 重置表单
     uploadForm.value = {
-      title: "",
-      profile: "",
-      avatarUrl: "",
       file: null
     };
     fileList.value = [];
@@ -489,9 +448,6 @@ const handleUploadOk = async () => {
 const handleUploadCancel = () => {
   // 重置表单
   uploadForm.value = {
-    title: "",
-    profile: "",
-    avatarUrl: "",
     file: null
   };
   fileList.value = [];
@@ -518,11 +474,11 @@ const handleAvatarChange = (info: any) => {
       typeof info.file.response === "object" &&
       "url" in info.file.response
     ) {
-      uploadForm.value.avatarUrl = info.file.response.url;
+      // This code is no longer used
     } else {
       // 如果没有返回URL，可以使用本地预览
       getBase64(info.file.originFileObj, (url: string) => {
-        uploadForm.value.avatarUrl = url;
+        // This code is no longer used
       });
     }
     message.success(`${info.file.name} 上传成功!`);

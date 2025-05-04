@@ -10,6 +10,29 @@ const instance: AxiosInstance = axios.create({
   }
 });
 
+// 添加请求拦截器
+instance.interceptors.request.use(
+  (config) => {
+    // 从localStorage获取token信息
+    const tokenInfoStr = localStorage.getItem('tokenInfo');
+    if (tokenInfoStr) {
+      try {
+        const tokenInfo = JSON.parse(tokenInfoStr);
+        // 将token添加到请求头
+        if (tokenInfo.tokenName && tokenInfo.tokenValue) {
+          config.headers[tokenInfo.tokenName] = tokenInfo.tokenValue;
+        }
+      } catch (error) {
+        console.error('解析token信息失败', error);
+      }
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 // 添加响应拦截器
 instance.interceptors.response.use(
   (response: AxiosResponse): any => {

@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
 import IndexPage from "../pages/IndexPage.vue";
 import PostDetailPage from "../pages/post/DetailPage.vue";
+import LoginPage from "../pages/LoginPage.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -19,6 +20,13 @@ const routes: Array<RouteRecordRaw> = [
     component: PostDetailPage,
     meta: {
       title: "文章详情",
+    },
+  },
+  {
+    path: "/login",
+    component: LoginPage,
+    meta: {
+      title: "用户登录",
     },
   },
 ];
