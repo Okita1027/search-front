@@ -152,7 +152,7 @@ const expandedGroups = ref<Record<number, boolean>>({});
 // 获取文章详情
 const fetchPostDetail = async () => {
   try {
-    const response = await postService.getPostDetail({ id: route.query.text as string });
+    const response = await postService.getPostDetail({ text: route.query.text as string });
     postDetail.value = response.data;
   } catch (error) {
     console.error("获取文章详情失败:", error);

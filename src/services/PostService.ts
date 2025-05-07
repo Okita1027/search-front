@@ -12,10 +12,10 @@ const getPostList = async (params: PostSearchParams): Promise<ApiResponse<Post[]
 
 /**
  * 获取文章详情
- * @param params - 请求参数（包含文章ID）
+ * @param params - 请求参数（文章标题）
  * @returns 文章详情
  */
-const getPostDetail = async (params: { id: string }): Promise<ApiResponse<PostDetail>> => {
+const getPostDetail = async (params: { text: string }): Promise<ApiResponse<PostDetail>> => {
   return await myAxios.get('/post/detail', { params });
 };
 

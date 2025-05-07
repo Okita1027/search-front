@@ -78,10 +78,25 @@
                 </p>
                 <p class="ant-upload-text">点击或拖拽文件到此区域上传</p>
                 <p class="ant-upload-hint">
-                  支持 JPG/PNG 图片、MP3/FLAC 音频或 MP4/WebM 视频文件，文件大小不超过10MB
+                  支持 JPG/PNG 图片、MP3/FLAC 音频或 MP4/WebM 视频文件，文件大小不超过100MB
                 </p>
               </a-upload-dragger>
             </a-form-item>
+
+            <!-- 文件预览区域 -->
+            <div v-if="fileList.length > 0" class="file-preview">
+              <h3>文件列表</h3>
+              <div class="file-info">
+                <file-outlined />
+                <span class="file-name">{{ fileList[0].name }}</span>
+                <span class="file-size">{{ formatFileSize(fileList[0].size) }}</span>
+              </div>
+              <a-progress 
+                :percent="100" 
+                status="active" 
+                v-if="fileList[0].status === 'uploading'" 
+              />
+            </div>
           </a-form>
         </a-modal>
       </template>
@@ -114,7 +129,12 @@ import { useRoute, useRouter } from "vue-router";
 import { message, UploadProps } from "ant-design-vue";
 import AudioList from "@/components/AudioList.vue";
 import VideoList from "@/components/VideoList.vue";
-import { InboxOutlined, PlusOutlined, UploadOutlined } from "@ant-design/icons-vue";
+import { 
+  InboxOutlined, 
+  PlusOutlined, 
+  UploadOutlined, 
+  FileOutlined 
+} from "@ant-design/icons-vue";
 import { audioService, fileUploadService, pictureService, postService, userService, videoService } from "@/services";
 import { authService } from "@/services";
 import { Audio, Picture, Post, User, Video } from "@/types";
@@ -353,12 +373,13 @@ const beforeUpload = (file: File) => {
     message.error("只能上传 JPG/PNG 图片、MP3/FLAC 音频或 MP4/WebM 视频文件!");
   }
 
-  const isLt10M = file.size / 1024 / 1024 < 10;
-  if (!isLt10M) {
-    message.error("文件必须小于 10MB!");
+  const isLt100M = file.size / 1024 / 1024 < 100;
+  if (!isLt100M) {
+    message.error("文件必须小于 100MB!");
   }
 
-  return isValidType && isLt10M;
+  // 返回false阻止自动上传，只将文件添加到fileList中
+  return false;
 };
 
 // 处理上传状态变化
@@ -407,7 +428,9 @@ const handleUploadClick = () => {
     router.push('/login');
     return;
   }
-
+  
+  // 清空文件列表
+  fileList.value = [];
   // 已登录，显示上传模态框
   uploadModalVisible.value = true;
 };
@@ -418,11 +441,20 @@ const handleUploadOk = async () => {
     return;
   }
 
+  const file = fileList.value[0].originFileObj;
+  
+  // 再次验证文件大小限制
+  const isLt100M = file.size / 1024 / 1024 < 100;
+  if (!isLt100M) {
+    message.error("文件必须小于 100MB!");
+    return;
+  }
+
   confirmLoading.value = true;
   try {
     // 使用fileUploadService上传文件
     const fileUploadRequest = {
-      file: fileList.value[0].originFileObj
+      file: file
     };
 
     await fileUploadService.uploadFile(fileUploadRequest);
@@ -501,21 +533,54 @@ const getBase64 = (file: File, callback: (url: string) => void) => {
 };
 
 const handleFileChange = (info: any) => {
+  // 只保留最新上传的文件
   fileList.value = info.fileList.slice(-1);
-  const file = info.file;
+};
 
-  if (file.status === "done") {
-    message.success(`${file.name} 上传成功!`);
-  } else if (file.status === "error") {
-    const errorMsg =
-      typeof file.response === "object" &&
-      file.response &&
-      "message" in file.response
-        ? file.response.message
-        : "未知错误";
-    message.error(`${file.name} 上传失败: ${errorMsg}`);
-  }
+// 文件大小格式化函数
+const formatFileSize = (bytes: number) => {
+  if (bytes === 0) return '0 Bytes';
+  
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.file-preview {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px dashed #d9d9d9;
+  border-radius: 4px;
+  background-color: #fafafa;
+}
+
+.file-preview h3 {
+  margin-bottom: 12px;
+  color: #1890ff;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.file-name {
+  margin-left: 8px;
+  font-weight: 500;
+  color: #333;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-size {
+  color: #999;
+  margin-left: 8px;
+}
+</style>
