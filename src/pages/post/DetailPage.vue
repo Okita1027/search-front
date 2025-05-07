@@ -37,11 +37,11 @@
                 <span class="comment-like" @click="handleLike(group.main)">
                   <like-outlined />
                   <span style="padding-left: 4px">{{
-                    group.main.likeCount
-                  }}</span>
+                      group.main.likeCount
+                    }}</span>
                 </span>
                 <span class="comment-reply" @click="replyToComment(group.main)"
-                  >回复</span
+                >回复</span
                 >
               </template>
 
@@ -59,11 +59,11 @@
                     <span class="comment-like" @click="handleLike(reply)">
                       <like-outlined />
                       <span style="padding-left: 4px">{{
-                        reply.likeCount
-                      }}</span>
+                          reply.likeCount
+                        }}</span>
                     </span>
                     <span class="comment-reply" @click="replyToComment(reply)"
-                      >回复</span
+                    >回复</span
                     >
                   </template>
                 </a-comment>
@@ -109,12 +109,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { message } from "ant-design-vue";
 import { LikeOutlined } from "@ant-design/icons-vue";
-import { postService } from "@/services";
-import { Post, PostComment } from "@/types";
+import { authService, postService, userService } from "@/services";
 
 // 定义文章详情和评论类型
 interface Comment {
@@ -133,7 +132,9 @@ interface CommentGroup {
   replies: Comment[];
 }
 
-interface PostDetail {
+// 自定义文章详情接口
+interface PostDetailData {
+  id: string;
   title: string;
   content: string;
   createBy: string;
@@ -143,7 +144,7 @@ interface PostDetail {
 }
 
 const route = useRoute();
-const postDetail = ref<PostDetail | null>(null);
+const postDetail = ref<PostDetailData | null>(null);
 const commentContent = ref("");
 const replyTo = ref<Comment | null>(null);
 // 记录每个讨论组的展开状态
@@ -184,7 +185,7 @@ const commentGroups = computed(() => {
 
         groups.push({
           main: mainComment,
-          replies: replies,
+          replies: replies
         });
       }
     }
@@ -220,7 +221,7 @@ const formatDate = (dateStr: string) => {
       month: "2-digit",
       day: "2-digit",
       hour: "2-digit",
-      minute: "2-digit",
+      minute: "2-digit"
     });
   } catch (e) {
     return dateStr;
@@ -249,10 +250,28 @@ const cancelReply = () => {
 };
 
 // 处理点赞
-const handleLike = (comment: Comment) => {
-  // 这里预留点赞功能的实现
-  console.log("点赞评论:", comment.commentId);
-  message.info("点赞功能即将上线");
+const handleLike = async (comment: Comment) => {
+  try {
+    // 检查用户是否已登录
+    if (!authService.isLoggedIn()) {
+      message.warning("请先登录后才能点赞");
+      return;
+    }
+
+    // 调用点赞API
+    const commentId = parseInt(comment.commentId);
+    const response = await userService.favorComment(commentId);
+
+    // 临时更新UI中的点赞数，等待后续接口刷新
+    comment.likeCount = (parseInt(comment.likeCount) + 1).toString();
+
+    // 重新获取文章详情，刷新评论列表
+    await fetchPostDetail();
+    message.success(response.message || "点赞失败");
+  } catch (error) {
+    console.error("点赞失败:", error);
+    message.error("点赞失败，请稍后再试");
+  }
 };
 
 // 提交评论
@@ -263,12 +282,18 @@ const submitComment = async () => {
   }
 
   try {
+    // 检查用户是否已登录
+    if (!authService.isLoggedIn()) {
+      message.warning("请先登录后才能评论");
+      return;
+    }
+
     // 构造评论请求参数
     const params = {
-      postId: postDetail.value?.id || '',
+      postId: postDetail.value?.id || "",
       content: commentContent.value,
       parentUsername: replyTo.value?.currentUsername || null,
-      parentNickname: replyTo.value?.currentNickname || null,
+      parentNickname: replyTo.value?.currentNickname || null
     };
 
     // 使用service发送请求
