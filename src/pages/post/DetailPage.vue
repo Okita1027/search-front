@@ -37,11 +37,11 @@
                 <span class="comment-like" @click="handleLike(group.main)">
                   <like-outlined />
                   <span style="padding-left: 4px">{{
-                      group.main.likeCount
-                    }}</span>
+                    group.main.likeCount
+                  }}</span>
                 </span>
                 <span class="comment-reply" @click="replyToComment(group.main)"
-                >回复</span
+                  >回复</span
                 >
               </template>
 
@@ -59,11 +59,11 @@
                     <span class="comment-like" @click="handleLike(reply)">
                       <like-outlined />
                       <span style="padding-left: 4px">{{
-                          reply.likeCount
-                        }}</span>
+                        reply.likeCount
+                      }}</span>
                     </span>
                     <span class="comment-reply" @click="replyToComment(reply)"
-                    >回复</span
+                      >回复</span
                     >
                   </template>
                 </a-comment>
@@ -88,21 +88,49 @@
       <!-- 添加评论区域 -->
       <div class="comment-editor">
         <h3>{{ replyTo ? `回复 ${replyTo.currentNickname}` : "发表评论" }}</h3>
+        <div v-if="replyTo" class="reply-info">
+          <div class="reply-target">
+            <a-tag color="blue">回复给: {{ replyTo.currentNickname }}</a-tag>
+            <a-button type="link" size="small" @click="cancelReply">取消回复</a-button>
+          </div>
+          <p class="reply-content">{{ replyTo.content }}</p>
+        </div>
         <a-form layout="vertical">
           <a-form-item>
             <a-textarea
               v-model:value="commentContent"
               :rows="4"
               placeholder="请输入评论内容..."
+              :maxLength="500"
+              showCount
             />
           </a-form-item>
           <a-form-item>
             <a-space>
-              <a-button v-if="replyTo" @click="cancelReply">取消回复</a-button>
-              <a-button type="primary" @click="submitComment">提交</a-button>
+              <a-button
+                v-if="replyTo"
+                @click="cancelReply"
+              >
+                取消回复
+              </a-button>
+              <a-button
+                type="primary"
+                @click="submitComment"
+                :loading="submitting"
+                class="comment-submit-btn"
+              >
+                {{ submitting ? '提交中...' : '提交' }}
+              </a-button>
             </a-space>
           </a-form-item>
         </a-form>
+        <div v-if="!authService.isLoggedIn()" class="login-tip">
+          <a-alert
+            message="提示：登录后才能发表评论"
+            type="info"
+            show-icon
+          />
+        </div>
       </div>
     </a-card>
   </div>
@@ -147,6 +175,7 @@ const route = useRoute();
 const postDetail = ref<PostDetailData | null>(null);
 const commentContent = ref("");
 const replyTo = ref<Comment | null>(null);
+const submitting = ref(false);
 // 记录每个讨论组的展开状态
 const expandedGroups = ref<Record<number, boolean>>({});
 
@@ -257,7 +286,7 @@ const handleLike = async (comment: Comment) => {
       message.warning("请先登录后才能点赞");
       return;
     }
-
+    
     // 调用点赞API
     const commentId = parseInt(comment.commentId);
     const response = await userService.favorComment(commentId);
@@ -267,7 +296,7 @@ const handleLike = async (comment: Comment) => {
 
     // 重新获取文章详情，刷新评论列表
     await fetchPostDetail();
-    message.success(response.message || "点赞失败");
+    message.success("点赞成功");
   } catch (error) {
     console.error("点赞失败:", error);
     message.error("点赞失败，请稍后再试");
@@ -287,27 +316,41 @@ const submitComment = async () => {
       message.warning("请先登录后才能评论");
       return;
     }
+    
+    submitting.value = true;
+    
+    // 获取文章标题
+    const articleTitle = postDetail.value?.title || '';
+    // 获取父评论ID（如果是回复）
+    const parentCommentId = replyTo.value ? parseInt(replyTo.value.commentId) : 0;
+    // 评论内容
+    const content = commentContent.value;
 
-    // 构造评论请求参数
-    const params = {
-      postId: postDetail.value?.id || "",
-      content: commentContent.value,
-      parentUsername: replyTo.value?.currentUsername || null,
-      parentNickname: replyTo.value?.currentNickname || null
-    };
-
-    // 使用service发送请求
-    await postService.addPostComment(params);
-
-    message.success("评论发布成功");
-    commentContent.value = "";
-    replyTo.value = null;
-
-    // 重新获取文章详情，刷新评论列表
-    fetchPostDetail();
+    // 使用userService.comment方法发送评论请求
+    const response = await userService.comment(articleTitle, parentCommentId, content);
+    
+    if (response.code === 200) {
+      message.success("评论发布成功");
+      
+      // 清空内容和回复状态
+      commentContent.value = "";
+      replyTo.value = null;
+      
+      // 重新获取文章详情，刷新评论列表
+      await fetchPostDetail();
+      
+      // 滚动到评论区域
+      setTimeout(() => {
+        document.querySelector('.comments-card')?.scrollIntoView({ behavior: 'smooth' });
+      }, 300);
+    } else {
+      message.error(response.message || "评论发布失败");
+    }
   } catch (error) {
     console.error("评论发布失败:", error);
-    message.error("评论发布失败");
+    message.error("评论发布失败，请稍后再试");
+  } finally {
+    submitting.value = false;
   }
 };
 
@@ -355,10 +398,24 @@ onMounted(() => {
   border-bottom: 1px solid #f0f0f0;
   padding-bottom: 24px;
   margin-bottom: 24px;
+  transition: background-color 0.3s;
 }
 
 .comment-group:last-child {
   border-bottom: none;
+}
+
+.comment-group:hover {
+  background-color: #f9f9f9;
+}
+
+.comment-group.new-comment {
+  animation: highlight-comment 2s ease-in-out;
+}
+
+@keyframes highlight-comment {
+  0% { background-color: #e6f7ff; }
+  100% { background-color: transparent; }
 }
 
 .comment-like,
@@ -381,5 +438,37 @@ onMounted(() => {
   margin-top: 20px;
   padding-top: 20px;
   border-top: 1px solid #f0f0f0;
+}
+
+.reply-info {
+  margin-bottom: 10px;
+  padding: 10px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+}
+
+.reply-target {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.reply-content {
+  margin-bottom: 10px;
+  color: #595959;
+  font-style: italic;
+}
+
+.login-tip {
+  margin-top: 10px;
+}
+
+.ant-comment-actions {
+  margin-top: 8px;
+}
+
+.ant-comment-content-detail {
+  padding: 8px 0;
 }
 </style>

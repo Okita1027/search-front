@@ -64,9 +64,9 @@ const favorComment = async (commentId: number): Promise<ApiResponse<any>> => {
 };
 
 /**
- * 评论
+ * 发表/回复评论
  * @param articleTitle 文章标题
- * @param commentId 父评论ID
+ * @param commentId 父评论ID（用于回复其他人的评论时）
  * @param commentContent 评论内容
  */
 const comment = async (articleTitle: string, commentId: number, commentContent: string): Promise<ApiResponse<any>> => {
