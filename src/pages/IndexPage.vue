@@ -17,20 +17,19 @@
           <a-select-option value="mita">秘塔AI搜索</a-select-option>
           <!-- <a-select-option value="sohu">搜狐</a-select-option> -->
         </a-select>
-        
+
         <a-auto-complete
           autofocus="true"
           backfill="true"
           v-model:value="searchText"
           :options="suggestions"
           class="search-input"
-          placeholder="请输入搜索关键词"
           @focus="onSearch"
           @search="onSearch"
           @select="onSelect"
           @keydown="onKeyDown"
         />
-        
+
         <a-button
           type="primary"
           class="search-button"
@@ -39,21 +38,21 @@
           搜&nbsp;&nbsp;索
         </a-button>
       </div>
-      
+
       <MyDivider />
-      
+
       <!-- 内容区域 -->
       <div class="content-area">
         <a-tabs v-model:activeKey="activeKey" @change="onTabChange">
           <template #rightExtra>
-            <a-button type="primary" @click="handleUploadClick">
+            <a-button type="primary" @click="handleUploadClick" class="ant-btn">
               <template #icon>
                 <upload-outlined />
               </template>
               上传文件
             </a-button>
           </template>
-          
+
           <a-tab-pane key="post" tab="文章">
             <PostList :post-list="postList" />
           </a-tab-pane>
@@ -72,7 +71,7 @@
         </a-tabs>
       </div>
     </div>
-    
+
     <!-- 上传文件模态框 -->
     <a-modal
       v-model:visible="uploadModalVisible"
@@ -115,10 +114,10 @@
             <span class="file-name">{{ fileList[0].name }}</span>
             <span class="file-size">{{ formatFileSize(fileList[0].size) }}</span>
           </div>
-          <a-progress 
-            :percent="100" 
-            status="active" 
-            v-if="fileList[0].status === 'uploading'" 
+          <a-progress
+            :percent="100"
+            status="active"
+            v-if="fileList[0].status === 'uploading'"
           />
         </div>
       </a-form>
@@ -137,14 +136,16 @@ import { useRoute, useRouter } from "vue-router";
 import { message, UploadProps } from "ant-design-vue";
 import AudioList from "@/components/AudioList.vue";
 import VideoList from "@/components/VideoList.vue";
-import { 
-  InboxOutlined, 
-  PlusOutlined, 
-  UploadOutlined, 
-  FileOutlined 
-} from "@ant-design/icons-vue";
-import { audioService, fileUploadService, pictureService, postService, userService, videoService } from "@/services";
-import { authService } from "@/services";
+import { FileOutlined, InboxOutlined, UploadOutlined } from "@ant-design/icons-vue";
+import {
+  audioService,
+  authService,
+  fileUploadService,
+  pictureService,
+  postService,
+  userService,
+  videoService
+} from "@/services";
 import { Audio, Picture, Post, User, Video } from "@/types";
 
 const postList = ref<Post[]>([]);
@@ -431,12 +432,12 @@ const fileList = ref<any[]>([]);
 const handleUploadClick = () => {
   // 检查用户是否已登录
   if (!authService.isLoggedIn()) {
-    message.warning('请先登录后再上传文件');
+    message.warning("请先登录后再上传文件");
     // 跳转到登录页面
-    router.push('/login');
+    router.push("/login");
     return;
   }
-  
+
   // 清空文件列表
   fileList.value = [];
   // 已登录，显示上传模态框
@@ -450,7 +451,7 @@ const handleUploadOk = async () => {
   }
 
   const file = fileList.value[0].originFileObj;
-  
+
   // 再次验证文件大小限制
   const isLt100M = file.size / 1024 / 1024 < 100;
   if (!isLt100M) {
@@ -547,13 +548,13 @@ const handleFileChange = (info: any) => {
 
 // 文件大小格式化函数
 const formatFileSize = (bytes: number) => {
-  if (bytes === 0) return '0 Bytes';
-  
+  if (bytes === 0) return "0 Bytes";
+
   const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const sizes = ["Bytes", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 };
 </script>
 
@@ -562,31 +563,94 @@ const formatFileSize = (bytes: number) => {
   max-width: 1200px;
   margin: 20px auto;
   padding: 0 20px;
+  font-size: 1.5em; /* 文字放大1.5倍 */
 }
 
 .search-area {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 20px 0;
+  margin: 30px 0;
 }
 
 .search-engine-select {
-  width: 120px;
-  margin-right: 10px;
+  width: 150px; /* 放大1.5倍 */
+  height: 50px; /* 调整高度 */
+  line-height: 50px;
+  font-size: 1em;
 }
 
 .search-input {
-  width: 500px;
-  margin: 0 10px;
+  width: 600px; /* 放大1.5倍 */
+  height: 50px; /* 调整高度 */
+  line-height: 40px;
+  margin: 0 15px;
+  font-size: 1.2em;
 }
 
 .search-button {
-  width: 80px;
+  width: 120px; /* 放大1.5倍 */
+  height: 50px; /* 调整高度 */
+  line-height: 50px;
+  font-size: 1.2em;
 }
 
 .content-area {
-  margin-top: 20px;
+  margin-top: 30px;
+  font-size: 1em;
+}
+
+
+:deep(.ant-select-selector) {
+  height: 100% !important;
+}
+
+:deep(.ant-select-selection-item) {
+  height: 100% !important;
+  line-height: inherit !important;
+}
+
+:deep(.ant-select-selection-search-input) {
+  height: 100% !important;
+}
+
+:deep(.ant-btn) {
+  height: 100% !important;
+  line-height: 40px !important;
+  font-size: 1.2em !important;
+}
+
+/* 调整标签页样式 */
+:deep(.ant-tabs-tab) {
+  font-size: 1.1em;
+  padding: 12px 20px;
+}
+
+:deep(.ant-tabs-tab-btn) {
+  font-weight: 500;
+}
+
+:deep(.ant-tabs-extra-content .ant-btn) {
+  font-size: 1em;
+  height: 40px;
+  padding: 0 20px;
+}
+
+/* 调整结果列表的样式 */
+:deep(.ant-list-item) {
+  font-size: 1em;
+  padding: 15px 0;
+}
+
+:deep(.ant-card) {
+  font-size: 1em;
+}
+
+:deep(.ant-avatar) {
+  width: 60px;
+  height: 60px;
+  line-height: 60px;
+  font-size: 24px;
 }
 
 .file-preview {
@@ -600,6 +664,7 @@ const formatFileSize = (bytes: number) => {
 .file-preview h3 {
   margin-bottom: 12px;
   color: #1890ff;
+  font-size: 1.2em;
 }
 
 .file-info {
