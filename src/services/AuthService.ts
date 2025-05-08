@@ -52,6 +52,22 @@ const getCurrentUserId = (): string | null => {
 };
 
 /**
+ * 获取当前登录的用户名
+ * @returns 用户名，未登录返回null
+ */
+const getCurrentUsername = (): string | null => {
+  const tokenInfo = localStorage.getItem('tokenInfo');
+  if (!tokenInfo) return null;
+  
+  try {
+    const tokenData = JSON.parse(tokenInfo);
+    return tokenData.username || null;
+  } catch (error) {
+    return null;
+  }
+};
+
+/**
  * 获取token信息
  * @returns token信息对象
  */
@@ -78,6 +94,7 @@ export default {
   checkCaptcha,
   isLoggedIn,
   getCurrentUserId,
+  getCurrentUsername,
   getTokenInfo,
   clearLoginInfo
 }; 

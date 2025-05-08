@@ -1,121 +1,128 @@
 <template>
-  <!-- 无法单独改变组件的大小，故放大整个页面 -->
-  <div style="transform: scale(1.5); margin-top: 25px; transform-origin: top">
-    <a-select
-      v-model:value="selectedEngine"
-      style="
-        width: 120px;
-        margin-right: 45px;
-        margin-left: 100px;
-        transform: scale(1.2);
-      "
-    >
-      <a-select-option value="default">系统检索</a-select-option>
-      <a-select-option value="baidu">百度</a-select-option>
-      <a-select-option value="bing">Bing</a-select-option>
-      <a-select-option value="yandex">Yandex</a-select-option>
-      <a-select-option value="google">Google</a-select-option>
-      <a-select-option value="bilibili">哔哩哔哩</a-select-option>
-      <a-select-option value="mita">秘塔AI搜索</a-select-option>
-      <!-- <a-select-option value="sohu">搜狐</a-select-option> -->
-    </a-select>
-    <a-auto-complete
-      autofocus="true"
-      backfill="true"
-      v-model:value="searchText"
-      :options="suggestions"
-      style="width: 425px; margin-left: 10px; transform: scale(1.2)"
-      placeholder="请输入搜索关键词"
-      @focus="onSearch"
-      @search="onSearch"
-      @select="onSelect"
-      @keydown="onKeyDown"
-    >
-    </a-auto-complete>
-    <a-button
-      type="primary"
-      style="width: 75px; margin-left: 50px; transform: scale(1.2)"
-      @click="handleSearch"
-    >
-      搜&nbsp;&nbsp;索
-    </a-button>
-    <MyDivider />
-    <!-- Tabs 切换 -->
-    <a-tabs v-model:activeKey="activeKey" @change="onTabChange">
-      <template #rightExtra>
-        <a-button type="primary" @click="handleUploadClick">
-          <template #icon>
-            <upload-outlined />
-          </template>
-          上传文件
-        </a-button>
-        <!-- 上传文件模态框 -->
-        <a-modal
-          v-model:visible="uploadModalVisible"
-          title="上传文件"
-          @ok="handleUploadOk"
-          :confirmLoading="confirmLoading"
-          @cancel="handleUploadCancel"
+  <div>
+    <NavBar />
+    <div class="search-container">
+      <!-- 搜索区域 -->
+      <div class="search-area">
+        <a-select
+          v-model:value="selectedEngine"
+          class="search-engine-select"
         >
-          <a-form
-            :model="uploadForm"
-            :rules="uploadRules"
-            ref="uploadFormRef"
-            layout="vertical"
+          <a-select-option value="default">系统检索</a-select-option>
+          <a-select-option value="baidu">百度</a-select-option>
+          <a-select-option value="bing">Bing</a-select-option>
+          <a-select-option value="yandex">Yandex</a-select-option>
+          <a-select-option value="google">Google</a-select-option>
+          <a-select-option value="bilibili">哔哩哔哩</a-select-option>
+          <a-select-option value="mita">秘塔AI搜索</a-select-option>
+          <!-- <a-select-option value="sohu">搜狐</a-select-option> -->
+        </a-select>
+        
+        <a-auto-complete
+          autofocus="true"
+          backfill="true"
+          v-model:value="searchText"
+          :options="suggestions"
+          class="search-input"
+          placeholder="请输入搜索关键词"
+          @focus="onSearch"
+          @search="onSearch"
+          @select="onSelect"
+          @keydown="onKeyDown"
+        />
+        
+        <a-button
+          type="primary"
+          class="search-button"
+          @click="handleSearch"
+        >
+          搜&nbsp;&nbsp;索
+        </a-button>
+      </div>
+      
+      <MyDivider />
+      
+      <!-- 内容区域 -->
+      <div class="content-area">
+        <a-tabs v-model:activeKey="activeKey" @change="onTabChange">
+          <template #rightExtra>
+            <a-button type="primary" @click="handleUploadClick">
+              <template #icon>
+                <upload-outlined />
+              </template>
+              上传文件
+            </a-button>
+          </template>
+          
+          <a-tab-pane key="post" tab="文章">
+            <PostList :post-list="postList" />
+          </a-tab-pane>
+          <a-tab-pane key="picture" tab="图片">
+            <PictureList :picture-list="pictureList" />
+          </a-tab-pane>
+          <a-tab-pane key="user" tab="用户">
+            <UserList :user-list="userList" />
+          </a-tab-pane>
+          <a-tab-pane key="audio" tab="音频">
+            <AudioList :audio-list="audioList" />
+          </a-tab-pane>
+          <a-tab-pane key="video" tab="视频">
+            <VideoList :video-list="videoList" />
+          </a-tab-pane>
+        </a-tabs>
+      </div>
+    </div>
+    
+    <!-- 上传文件模态框 -->
+    <a-modal
+      v-model:visible="uploadModalVisible"
+      title="上传文件"
+      @ok="handleUploadOk"
+      :confirmLoading="confirmLoading"
+      @cancel="handleUploadCancel"
+    >
+      <a-form
+        :model="uploadForm"
+        :rules="uploadRules"
+        ref="uploadFormRef"
+        layout="vertical"
+      >
+        <a-form-item label="文件" name="file">
+          <a-upload-dragger
+            name="file"
+            :before-upload="beforeUpload"
+            @change="handleFileChange"
+            :showUploadList="true"
+            :maxCount="1"
+            :fileList="fileList"
+            :multiple="false"
           >
-            <a-form-item label="文件" name="file">
-              <a-upload-dragger
-                name="file"
-                :before-upload="beforeUpload"
-                @change="handleFileChange"
-                :showUploadList="true"
-                :maxCount="1"
-                :fileList="fileList"
-                :multiple="false"
-              >
-                <p class="ant-upload-drag-icon">
-                  <inbox-outlined />
-                </p>
-                <p class="ant-upload-text">点击或拖拽文件到此区域上传</p>
-                <p class="ant-upload-hint">
-                  支持 JPG/PNG 图片、MP3/FLAC 音频或 MP4/WebM 视频文件，文件大小不超过100MB
-                </p>
-              </a-upload-dragger>
-            </a-form-item>
+            <p class="ant-upload-drag-icon">
+              <inbox-outlined />
+            </p>
+            <p class="ant-upload-text">点击或拖拽文件到此区域上传</p>
+            <p class="ant-upload-hint">
+              支持 JPG/PNG 图片、MP3/FLAC 音频或 MP4/WebM 视频文件，文件大小不超过100MB
+            </p>
+          </a-upload-dragger>
+        </a-form-item>
 
-            <!-- 文件预览区域 -->
-            <div v-if="fileList.length > 0" class="file-preview">
-              <h3>文件列表</h3>
-              <div class="file-info">
-                <file-outlined />
-                <span class="file-name">{{ fileList[0].name }}</span>
-                <span class="file-size">{{ formatFileSize(fileList[0].size) }}</span>
-              </div>
-              <a-progress 
-                :percent="100" 
-                status="active" 
-                v-if="fileList[0].status === 'uploading'" 
-              />
-            </div>
-          </a-form>
-        </a-modal>
-      </template>
-      <a-tab-pane key="post" tab="文章">
-        <PostList :post-list="postList" />
-      </a-tab-pane>
-      <a-tab-pane key="picture" tab="图片">
-        <PictureList :picture-list="pictureList" />
-      </a-tab-pane>
-      <a-tab-pane key="user" tab="用户">
-        <UserList :user-list="userList" />
-      </a-tab-pane>
-      <a-tab-pane key="audio" tab="音频">
-        <AudioList :audio-list="audioList" />
-      </a-tab-pane>
-      <a-tab-pane key="video" tab="视频">
-        <VideoList :video-list="videoList" />
-      </a-tab-pane>
-    </a-tabs>
+        <!-- 文件预览区域 -->
+        <div v-if="fileList.length > 0" class="file-preview">
+          <h3>文件列表</h3>
+          <div class="file-info">
+            <file-outlined />
+            <span class="file-name">{{ fileList[0].name }}</span>
+            <span class="file-size">{{ formatFileSize(fileList[0].size) }}</span>
+          </div>
+          <a-progress 
+            :percent="100" 
+            status="active" 
+            v-if="fileList[0].status === 'uploading'" 
+          />
+        </div>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 
@@ -125,6 +132,7 @@ import PostList from "@/components/PostList.vue";
 import PictureList from "@/components/PictureList.vue";
 import UserList from "@/components/UserList.vue";
 import MyDivider from "@/components/MyDivider.vue";
+import NavBar from "@/components/NavBar.vue";
 import { useRoute, useRouter } from "vue-router";
 import { message, UploadProps } from "ant-design-vue";
 import AudioList from "@/components/AudioList.vue";
@@ -550,6 +558,37 @@ const formatFileSize = (bytes: number) => {
 </script>
 
 <style scoped>
+.search-container {
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 0 20px;
+}
+
+.search-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.search-engine-select {
+  width: 120px;
+  margin-right: 10px;
+}
+
+.search-input {
+  width: 500px;
+  margin: 0 10px;
+}
+
+.search-button {
+  width: 80px;
+}
+
+.content-area {
+  margin-top: 20px;
+}
+
 .file-preview {
   margin-top: 16px;
   padding: 16px;

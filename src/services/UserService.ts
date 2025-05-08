@@ -56,7 +56,7 @@ const getUserDetail = async (username: string): Promise<ApiResponse<User>> => {
 
 
 /**
- * 编辑用户个人详细信息
+ * 用户编辑个人详细信息
  * @param userData - 用户数据
  * @returns 更新结果
  */
