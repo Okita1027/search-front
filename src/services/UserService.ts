@@ -1,5 +1,5 @@
 import myAxios from '@/plugins/myAxios';
-import { ApiResponse, User, UserSearchParams } from '@/types';
+import { ApiResponse, User, UserDTO, UserSearchParams, UserVO } from "@/types";
 
 /**
  * 获取用户列表
@@ -37,20 +37,30 @@ const logoutUser = async (): Promise<ApiResponse<any>> => {
 };
 
 /**
- * 获取用户信息
+ * 获取用户信息（首页搜索页面）
  * @param username - 用户名
  * @returns 用户信息
  */
-const getUserInfo = async (username: string): Promise<ApiResponse<User>> => {
+const getUserInfo = async (username: string): Promise<ApiResponse<UserVO>> => {
   return await myAxios.get('/user/info', { params: { username } });
 };
 
 /**
- * 更新用户信息
+ * 获取用户详情信息（用户中心页面）
+ * @param username - 用户名
+ * @returns 用户详细信息
+ */
+const getUserDetail = async (username: string): Promise<ApiResponse<User>> => {
+  return await myAxios.get('/user/detail', { params: { username } });
+};
+
+
+/**
+ * 编辑用户个人详细信息
  * @param userData - 用户数据
  * @returns 更新结果
  */
-const updateUserInfo = async (userData: any): Promise<ApiResponse<any>> => {
+const updateUserInfo = async (userData: UserDTO): Promise<ApiResponse<any>> => {
   return await myAxios.put('/user/info', userData);
 };
 
@@ -79,6 +89,7 @@ export default {
   loginUser,
   logoutUser,
   getUserInfo,
+  getUserDetail,
   updateUserInfo,
   favorComment,
   comment,
