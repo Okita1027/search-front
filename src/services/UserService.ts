@@ -1,5 +1,5 @@
 import myAxios from '@/plugins/myAxios';
-import { ApiResponse, User, UserDTO, UserSearchParams, UserVO } from "@/types";
+import { ApiResponse, User, UserDTO, UserSearchParams, UserVO, UserDetailVO } from "@/types";
 
 /**
  * 获取用户列表
@@ -50,7 +50,7 @@ const getUserInfo = async (username: string): Promise<ApiResponse<UserVO>> => {
  * @param username - 用户名
  * @returns 用户详细信息
  */
-const getUserDetail = async (username: string): Promise<ApiResponse<User>> => {
+const getUserDetail = async (username: string): Promise<ApiResponse<UserDetailVO>> => {
   return await myAxios.get('/user/detail', { params: { username } });
 };
 

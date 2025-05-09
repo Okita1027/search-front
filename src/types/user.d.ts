@@ -36,6 +36,16 @@ export interface UserVO {
 }
 
 /**
+ * 用户详情对象（用户中心页面）
+ * TODO any类型需要更改成包含 fileName、filePath的对象类型
+ */
+export interface UserDetailVO extends User {
+  // KEY:文件类型
+  // VALUE:文件列表（fileName、filePath）
+  fileListMap: Map<string, List<any>>;
+}
+
+/**
  * 用户查询参数（首页搜索页面）
  */
 export interface UserSearchParams {

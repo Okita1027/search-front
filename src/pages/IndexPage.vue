@@ -107,7 +107,7 @@
         </a-form-item>
 
         <!-- 文件预览区域 -->
-        <div v-if="fileList.length > 0" class="file-preview">
+<!--        <div v-if="fileList.length > 0" class="file-preview">
           <h3>文件列表</h3>
           <div v-for="(file, index) in fileList" :key="index" class="file-info">
             <file-outlined />
@@ -119,7 +119,7 @@
               v-if="file.status === 'uploading'"
             />
           </div>
-        </div>
+        </div>-->
       </a-form>
     </a-modal>
   </div>
