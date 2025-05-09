@@ -92,16 +92,16 @@
             :before-upload="beforeUpload"
             @change="handleFileChange"
             :showUploadList="true"
-            :maxCount="1"
+            :maxCount="5"
             :fileList="fileList"
-            :multiple="false"
+            :multiple="true"
           >
             <p class="ant-upload-drag-icon">
               <inbox-outlined />
             </p>
             <p class="ant-upload-text">点击或拖拽文件到此区域上传</p>
             <p class="ant-upload-hint">
-              支持 JPG/PNG 图片、MP3/FLAC 音频或 MP4/WebM 视频文件，文件大小不超过100MB
+              支持 JPG/PNG 图片、MP3/FLAC 音频或 MP4/WebM 视频文件，文件大小不超过100MB，最多可同时上传5个文件
             </p>
           </a-upload-dragger>
         </a-form-item>
@@ -109,16 +109,16 @@
         <!-- 文件预览区域 -->
         <div v-if="fileList.length > 0" class="file-preview">
           <h3>文件列表</h3>
-          <div class="file-info">
+          <div v-for="(file, index) in fileList" :key="index" class="file-info">
             <file-outlined />
-            <span class="file-name">{{ fileList[0].name }}</span>
-            <span class="file-size">{{ formatFileSize(fileList[0].size) }}</span>
+            <span class="file-name">{{ file.name }}</span>
+            <span class="file-size">{{ formatFileSize(file.size) }}</span>
+            <a-progress
+              :percent="100"
+              status="active"
+              v-if="file.status === 'uploading'"
+            />
           </div>
-          <a-progress
-            :percent="100"
-            status="active"
-            v-if="fileList[0].status === 'uploading'"
-          />
         </div>
       </a-form>
     </a-modal>
@@ -445,31 +445,43 @@ const handleUploadClick = () => {
 };
 
 const handleUploadOk = async () => {
-  if (!fileList.value.length || !fileList.value[0]?.originFileObj) {
+  if (!fileList.value.length) {
     message.error("请选择要上传的文件");
     return;
   }
 
-  const file = fileList.value[0].originFileObj;
-
-  // 再次验证文件大小限制
-  const isLt100M = file.size / 1024 / 1024 < 100;
-  if (!isLt100M) {
-    message.error("文件必须小于 100MB!");
+  // 检查所有文件的大小
+  const invalidFiles = fileList.value.filter(
+    file => file.originFileObj && file.originFileObj.size / 1024 / 1024 >= 100
+  );
+  
+  if (invalidFiles.length > 0) {
+    message.error(`有${invalidFiles.length}个文件超过100MB大小限制!`);
     return;
   }
 
   confirmLoading.value = true;
   try {
+    // 获取所有文件的originFileObj
+    const filesToUpload = fileList.value
+      .filter(file => file.originFileObj)
+      .map(file => file.originFileObj);
+
+    if (filesToUpload.length === 0) {
+      message.error("没有有效的文件可上传");
+      confirmLoading.value = false;
+      return;
+    }
+
     // 使用fileUploadService上传文件
     const fileUploadRequest = {
-      file: file
+      file: filesToUpload.length === 1 ? filesToUpload[0] : filesToUpload
     };
 
     await fileUploadService.uploadFile(fileUploadRequest);
 
     // 上传成功
-    message.success("上传成功");
+    message.success(`成功上传了${filesToUpload.length}个文件`);
     // 重置表单
     uploadForm.value = {
       file: null
@@ -542,8 +554,8 @@ const getBase64 = (file: File, callback: (url: string) => void) => {
 };
 
 const handleFileChange = (info: any) => {
-  // 只保留最新上传的文件
-  fileList.value = info.fileList.slice(-1);
+  // 保留所有上传的文件，最多5个
+  fileList.value = info.fileList.slice(0, 5);
 };
 
 // 文件大小格式化函数

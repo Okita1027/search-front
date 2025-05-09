@@ -2,7 +2,7 @@
  * 文件上传请求
  */
 export interface FileUploadRequest {
-  file: File;
+  file: File | File[];
 }
 
 /**
