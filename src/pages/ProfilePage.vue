@@ -47,6 +47,75 @@
           </a-descriptions-item>
         </a-descriptions>
       </a-card>
+      
+      <!-- 用户上传的文件列表 -->
+      <a-card v-if="hasUploadedFiles" class="profile-card files-card" title="我上传的文件" :loading="loading">
+        <!-- 文件搜索框 -->
+        <div class="file-search">
+          <a-input-search
+            v-model:value="fileSearchText"
+            placeholder="搜索文件名称"
+            style="width: 300px"
+            @change="handleFileSearch"
+            allowClear
+          />
+        </div>
+
+        <a-tabs>
+          <!-- 图片文件 -->
+          <a-tab-pane v-if="filteredFiles.picture && filteredFiles.picture.length > 0" key="picture" tab="图片">
+            <div class="file-grid">
+              <div v-for="(file, index) in filteredFiles.picture" :key="`picture-${index}`" class="file-item picture-item">
+                <img :src="getFileUrl(file.filePath)" :alt="file.fileName" class="preview-image" />
+                <div class="file-name">{{ file.fileName }}</div>
+              </div>
+            </div>
+            <a-empty v-if="filteredFiles.picture.length === 0" description="没有找到匹配的文件" />
+          </a-tab-pane>
+          
+          <!-- 音频文件 -->
+          <a-tab-pane v-if="filteredFiles.audio && filteredFiles.audio.length > 0" key="audio" tab="音频">
+            <div class="file-list">
+              <div v-for="(file, index) in filteredFiles.audio" :key="`audio-${index}`" class="file-item audio-item">
+                <sound-outlined class="file-icon" />
+                <div class="file-info">
+                  <div class="file-name">{{ file.fileName }}</div>
+                  <audio 
+                    controls 
+                    :src="getFileUrl(file.filePath)"
+                    @play="handleAudioPlay($event)"
+                  ></audio>
+                </div>
+              </div>
+            </div>
+            <a-empty v-if="filteredFiles.audio.length === 0" description="没有找到匹配的文件" />
+          </a-tab-pane>
+          
+          <!-- 视频文件 -->
+          <a-tab-pane v-if="filteredFiles.video && filteredFiles.video.length > 0" key="video" tab="视频">
+            <div class="file-list">
+              <div v-for="(file, index) in filteredFiles.video" :key="`video-${index}`" class="file-item video-item">
+                <video-camera-outlined class="file-icon" />
+                <div class="file-info">
+                  <div class="file-name">{{ file.fileName }}</div>
+                  <video 
+                    controls 
+                    width="100%" 
+                    :src="getFileUrl(file.filePath)"
+                    @play="handleVideoPlay($event)"
+                  ></video>
+                </div>
+              </div>
+            </div>
+            <a-empty v-if="filteredFiles.video.length === 0" description="没有找到匹配的文件" />
+          </a-tab-pane>
+          
+          <!-- 如果没有任何类型的文件 -->
+          <template v-if="!filteredFiles.picture?.length && !filteredFiles.audio?.length && !filteredFiles.video?.length">
+            <a-empty description="暂无上传文件" />
+          </template>
+        </a-tabs>
+      </a-card>
     </div>
     
     <!-- 编辑资料模态框 -->
@@ -142,21 +211,84 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive } from 'vue';
+import { ref, onMounted, reactive, computed } from 'vue';
 import { message } from 'ant-design-vue';
 import { useRouter } from 'vue-router';
 import type { FormInstance } from 'ant-design-vue';
-import { PlusOutlined } from '@ant-design/icons-vue';
+import { PlusOutlined, SoundOutlined, VideoCameraOutlined } from '@ant-design/icons-vue';
 import { authService, userService } from '@/services';
 import NavBar from '@/components/NavBar.vue';
 import { UserDTO } from '@/types';
+
+// 文件信息接口
+interface FileInfo {
+  fileName: string;
+  filePath: string;
+}
+
+// 文件列表映射接口
+interface FileListMap {
+  picture?: FileInfo[];
+  audio?: FileInfo[];
+  video?: FileInfo[];
+}
 
 const router = useRouter();
 const loading = ref(false);
 const submitting = ref(false);
 const editModalVisible = ref(false);
 const userInfo = ref<any>({});
+const userFilesMap = ref<FileListMap>({});
+const fileSearchText = ref('');
 const editFormRef = ref<FormInstance>();
+
+// 过滤后的文件列表
+const filteredFiles = computed(() => {
+  if (!fileSearchText.value.trim()) {
+    return userFilesMap.value;
+  }
+
+  const searchTerm = fileSearchText.value.toLowerCase();
+  const result: FileListMap = {};
+
+  // 过滤图片
+  if (userFilesMap.value.picture) {
+    result.picture = userFilesMap.value.picture.filter(
+      file => file.fileName.toLowerCase().includes(searchTerm)
+    );
+  }
+
+  // 过滤音频
+  if (userFilesMap.value.audio) {
+    result.audio = userFilesMap.value.audio.filter(
+      file => file.fileName.toLowerCase().includes(searchTerm)
+    );
+  }
+
+  // 过滤视频
+  if (userFilesMap.value.video) {
+    result.video = userFilesMap.value.video.filter(
+      file => file.fileName.toLowerCase().includes(searchTerm)
+    );
+  }
+
+  return result;
+});
+
+// 判断用户是否有上传的文件
+const hasUploadedFiles = computed(() => {
+  return (
+    (userFilesMap.value.picture && userFilesMap.value.picture.length > 0) ||
+    (userFilesMap.value.audio && userFilesMap.value.audio.length > 0) ||
+    (userFilesMap.value.video && userFilesMap.value.video.length > 0)
+  );
+});
+
+// 获取文件完整URL
+const getFileUrl = (filePath: string) => {
+  const baseUrl = process.env.VUE_APP_API_BASE_URL || '';
+  return `${baseUrl}/${filePath}`;
+};
 
 // 编辑表单
 const editForm = ref<any>({
@@ -256,6 +388,11 @@ const fetchUserDetail = async () => {
     const response = await userService.getUserDetail(username);
     if (response.code === 200) {
       userInfo.value = response.data;
+      
+      // 处理用户上传的文件列表
+      if (response.data.fileListMap) {
+        userFilesMap.value = response.data.fileListMap as unknown as FileListMap;
+      }
     } else {
       message.error(response.message || '获取用户信息失败');
     }
@@ -387,6 +524,49 @@ const handleEditCancel = () => {
   };
 };
 
+// 搜索文件
+const handleFileSearch = () => {
+  // 搜索功能通过computed属性filteredFiles实现
+};
+
+// 控制音频播放，确保同时只有一个音频在播放
+const handleAudioPlay = (event: Event) => {
+  const currentAudio = event.target as HTMLAudioElement;
+  
+  // 获取所有音频元素
+  const allAudios = document.querySelectorAll('audio');
+  
+  // 暂停其他正在播放的音频
+  allAudios.forEach(audio => {
+    if (audio !== currentAudio && !audio.paused) {
+      audio.pause();
+    }
+  });
+};
+
+// 控制视频播放，确保同时只有一个视频在播放
+const handleVideoPlay = (event: Event) => {
+  const currentVideo = event.target as HTMLVideoElement;
+  
+  // 获取所有视频元素
+  const allVideos = document.querySelectorAll('video');
+  
+  // 暂停其他正在播放的视频
+  allVideos.forEach(video => {
+    if (video !== currentVideo && !video.paused) {
+      video.pause();
+    }
+  });
+  
+  // 同时也暂停所有音频
+  const allAudios = document.querySelectorAll('audio');
+  allAudios.forEach(audio => {
+    if (!audio.paused) {
+      audio.pause();
+    }
+  });
+};
+
 // 页面加载时获取用户信息
 onMounted(() => {
   fetchUserDetail();
@@ -404,6 +584,11 @@ onMounted(() => {
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 24px;
+}
+
+.files-card {
+  margin-top: 24px;
 }
 
 .avatar-container {
@@ -420,5 +605,83 @@ onMounted(() => {
   color: #666;
   font-size: 14px;
   margin: 0;
+}
+
+/* 文件展示样式 */
+.file-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.file-item {
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.file-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.picture-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-image {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+}
+
+.audio-item, .video-item {
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+}
+
+.file-icon {
+  font-size: 24px;
+  margin-right: 16px;
+  color: #1890ff;
+}
+
+.file-info {
+  flex: 1;
+}
+
+.file-name {
+  padding: 8px;
+  font-size: 14px;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.audio-item .file-name,
+.video-item .file-name {
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+audio, video {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.file-search {
+  margin-bottom: 16px;
 }
 </style> 
