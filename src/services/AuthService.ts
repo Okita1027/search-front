@@ -29,7 +29,7 @@ const isLoggedIn = (): boolean => {
   
   try {
     const saTokenInfo: SaTokenInfo = JSON.parse(tokenInfo);
-    return saTokenInfo.isLogin === true;
+    return saTokenInfo.isLogin;
   } catch (error) {
     return false;
   }
