@@ -14,6 +14,7 @@
         <a-avatar v-else>{{ userInfo?.nickname?.charAt(0) || 'U' }}</a-avatar>
         <span class="username">{{ userInfo?.nickname || '用户' }}</span>
       </div>
+      <router-link to="/admin/login" class="nav-link admin-link">后台管理</router-link>
     </div>
   </div>
 </template>
@@ -129,5 +130,10 @@ onMounted(() => {
 .username {
   font-size: 14px;
   color: #333;
+}
+
+.admin-link {
+  margin-left: 24px;
+  color: #1890ff;
 }
 </style> 

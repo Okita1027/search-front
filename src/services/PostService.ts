@@ -16,7 +16,7 @@ const getPostList = async (params: PostSearchParams): Promise<ApiResponse<Articl
  */
 const getPostListAll = async (): Promise<ApiResponse<Article[]>> => {
   return await myAxios.get("/post/list");
-}
+};
 
 /**
  * 获取文章详情
@@ -45,7 +45,7 @@ const getPostSuggestion = async (suggestText: string): Promise<ApiResponse<strin
  */
 const addPost = async (articleVO: ArticleVO): Promise<ApiResponse<string>> => {
   return await myAxios.post("/post", articleVO);
-}
+};
 
 /**
  * 更新文章
@@ -54,7 +54,16 @@ const addPost = async (articleVO: ArticleVO): Promise<ApiResponse<string>> => {
  */
 const updatePost = async (article: Article): Promise<ApiResponse<string>> => {
   return await myAxios.put("/post", article);
-}
+};
+
+/**
+ * 删除文章
+ * @param id - 文章ID
+ * @returns 删除结果
+ */
+const deletePost = async (id: number): Promise<ApiResponse<string>> => {
+  return await myAxios.delete(`/post`, { params: { id } });
+};
 
 
 export default {
@@ -64,4 +73,5 @@ export default {
   getPostSuggestion,
   addPost,
   updatePost,
+  deletePost
 };

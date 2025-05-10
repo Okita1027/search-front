@@ -7,7 +7,11 @@ import myAxios from "@/plugins/myAxios";
  * @returns 登录结果和token信息
  */
 const adminLogin = async (adminData: { username: string, password: string }): Promise<ApiResponse<string>> => {
-  return await myAxios.post('/admin/login', adminData);
+  return await myAxios.post('/admin/login', adminData, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
 };
 
 /**

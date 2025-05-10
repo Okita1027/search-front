@@ -4,7 +4,11 @@ import PostDetailPage from "../pages/post/DetailPage.vue";
 import LoginPage from "../pages/LoginPage.vue";
 import RegisterPage from "../pages/RegisterPage.vue";
 import ProfilePage from "../pages/ProfilePage.vue";
+import AdminLayout from "../layouts/AdminLayout.vue";
+import AdminLoginPage from "../pages/admin/AdminLoginPage.vue";
+import PostManagementPage from "../pages/admin/PostManagementPage.vue";
 import { authService } from "@/services";
+import { message } from "ant-design-vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -47,6 +51,28 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
     },
   },
+  // 管理员路由
+  {
+    path: "/admin",
+    component: AdminLayout,
+    children: [
+      {
+        path: "login",
+        component: AdminLoginPage,
+        meta: {
+          title: "管理员登录",
+        },
+      },
+      {
+        path: "posts",
+        component: PostManagementPage,
+        meta: {
+          title: "文章管理",
+          requiresAdmin: true,
+        },
+      },
+    ],
+  },
 ];
 
 const router = createRouter({
@@ -56,6 +82,9 @@ const router = createRouter({
 
 // 全局前置守卫，检查需要登录的路由
 router.beforeEach((to, from, next) => {
+  // 设置页面标题
+  document.title = to.meta.title as string || "聚合搜索平台";
+
   // 如果页面需要认证
   if (to.meta.requiresAuth) {
     // 检查用户是否已登录
@@ -69,15 +98,19 @@ router.beforeEach((to, from, next) => {
       // 已登录，正常访问
       next();
     }
+  } else if (to.meta.requiresAdmin) {
+    // 检查是否是管理员
+    const loginId = localStorage.getItem('loginId');
+    if (!loginId || parseInt(loginId) >= 10) {
+      message.error('权限不足');
+      next('/admin/login');
+    } else {
+      next();
+    }
   } else {
     // 不需要认证的页面，直接访问
     next();
   }
-});
-
-// 设置页面标题
-router.afterEach((to) => {
-  document.title = to.meta.title as string || "聚合搜索平台";
 });
 
 export default router;

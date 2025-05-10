@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosResponse } from "axios";
+import axios, { AxiosInstance, AxiosResponse, AxiosRequestConfig } from "axios";
 import { ApiResponse } from "@/types/common";
 
 // 创建Axios实例
@@ -13,6 +13,11 @@ const instance: AxiosInstance = axios.create({
 // 添加请求拦截器
 instance.interceptors.request.use(
   (config) => {
+    // 如果设置了skipAuth，则跳过token验证
+    if ((config as any).skipAuth) {
+      return config;
+    }
+
     // 从localStorage获取token信息
     const tokenInfoStr = localStorage.getItem('tokenInfo');
     if (tokenInfoStr) {
