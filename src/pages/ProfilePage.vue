@@ -66,6 +66,11 @@
           <a-tab-pane v-if="filteredFiles.picture && filteredFiles.picture.length > 0" key="picture" tab="图片">
             <div class="file-grid">
               <div v-for="(file, index) in filteredFiles.picture" :key="`picture-${index}`" class="file-item picture-item">
+                <div class="file-actions">
+                  <a-button type="text" danger @click="handleDeleteFile('picture', file)">
+                    <delete-outlined />
+                  </a-button>
+                </div>
                 <img :src="getFileUrl(file.filePath)" :alt="file.fileName" class="preview-image" />
                 <div class="file-name">{{ file.fileName }}</div>
               </div>
@@ -79,7 +84,12 @@
               <div v-for="(file, index) in filteredFiles.audio" :key="`audio-${index}`" class="file-item audio-item">
                 <sound-outlined class="file-icon" />
                 <div class="file-info">
-                  <div class="file-name">{{ file.fileName }}</div>
+                  <div class="file-header">
+                    <div class="file-name">{{ file.fileName }}</div>
+                    <a-button type="text" danger @click="handleDeleteFile('audio', file)">
+                      <delete-outlined />
+                    </a-button>
+                  </div>
                   <audio 
                     controls 
                     :src="getFileUrl(file.filePath)"
@@ -97,7 +107,12 @@
               <div v-for="(file, index) in filteredFiles.video" :key="`video-${index}`" class="file-item video-item">
                 <video-camera-outlined class="file-icon" />
                 <div class="file-info">
-                  <div class="file-name">{{ file.fileName }}</div>
+                  <div class="file-header">
+                    <div class="file-name">{{ file.fileName }}</div>
+                    <a-button type="text" danger @click="handleDeleteFile('video', file)">
+                      <delete-outlined />
+                    </a-button>
+                  </div>
                   <video 
                     controls 
                     width="100%" 
@@ -212,11 +227,11 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive, computed } from 'vue';
-import { message } from 'ant-design-vue';
+import { message, Modal } from 'ant-design-vue';
 import { useRouter } from 'vue-router';
 import type { FormInstance } from 'ant-design-vue';
-import { PlusOutlined, SoundOutlined, VideoCameraOutlined } from '@ant-design/icons-vue';
-import { authService, userService } from '@/services';
+import { PlusOutlined, SoundOutlined, VideoCameraOutlined, DeleteOutlined } from '@ant-design/icons-vue';
+import { authService, userService, pictureService, audioService, videoService } from '@/services';
 import NavBar from '@/components/NavBar.vue';
 import { UserDTO } from '@/types';
 
@@ -567,6 +582,47 @@ const handleVideoPlay = (event: Event) => {
   });
 };
 
+// 删除文件
+const handleDeleteFile = async (type: 'picture' | 'audio' | 'video', file: FileInfo) => {
+  Modal.confirm({
+    title: '确认删除',
+    content: `确定要删除文件 "${file.fileName}" 吗？`,
+    okText: '确认',
+    cancelText: '取消',
+    async onOk() {
+      try {
+        let response;
+        switch (type) {
+          case 'picture':
+            response = await pictureService.deletePicture(file.fileName);
+            break;
+          case 'audio':
+            response = await audioService.deleteAudio(file.fileName);
+            break;
+          case 'video':
+            response = await videoService.deleteVideo(file.fileName);
+            break;
+        }
+
+        if (response.code === 200) {
+          message.success('删除成功');
+          // 从列表中移除已删除的文件
+          if (userFilesMap.value[type]) {
+            userFilesMap.value[type] = userFilesMap.value[type]!.filter(
+              f => f.fileName !== file.fileName
+            );
+          }
+        } else {
+          message.error(response.message || '删除失败');
+        }
+      } catch (error) {
+        console.error('删除文件失败:', error);
+        message.error('删除文件失败，请稍后再试');
+      }
+    }
+  });
+};
+
 // 页面加载时获取用户信息
 onMounted(() => {
   fetchUserDetail();
@@ -635,8 +691,7 @@ onMounted(() => {
 }
 
 .picture-item {
-  display: flex;
-  flex-direction: column;
+  position: relative;
 }
 
 .preview-image {
@@ -683,5 +738,25 @@ audio, video {
 
 .file-search {
   margin-bottom: 16px;
+}
+
+.file-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.file-item:hover .file-actions {
+  opacity: 1;
+}
+
+.file-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
 }
 </style> 
