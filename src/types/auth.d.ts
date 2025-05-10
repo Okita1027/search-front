@@ -15,7 +15,6 @@ export interface SaTokenInfo {
   tag: string;
 }
 
-
 /**
  * 图片验证码
  */

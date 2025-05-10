@@ -2,15 +2,14 @@
  * 图片信息
  */
 export interface Picture {
-  id?: string;
-  pictureUrl?: string;
-  title?: string;
-  description?: string;
-  tags?: string[];
-  createTime?: string;
-  updateTime?: string;
-  userId?: string;
-  isDeleted?: number;
+  id: number;
+  fileName: string;
+  filePath: string;
+  createTime: string;
+  updateTime: string;
+  createBy: string;
+  updateBy: string;
+  isDeleted: number;
 }
 
 /**
@@ -24,7 +23,5 @@ export interface PictureVO {
  * 图片查询参数
  */
 export interface PictureSearchParams {
-  text?: string;
-  pageNum?: number;
-  pageSize?: number;
+  text: string;
 } 

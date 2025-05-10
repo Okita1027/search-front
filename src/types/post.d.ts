@@ -1,22 +1,58 @@
 /**
  * 文章信息
  */
-export interface Post {
-  id: bigint;
-  title?: string;
-  content?: string;
-  createTime?: string;
-  updateTime?: string;
-  createBy?: string;
-  updateBy?: string;
-  isDeleted?: bigint;
+export interface Article {
+  id: number;
+  title: string;
+  content: string;
+  createTime: string;
+  updateTime: string;
+  createBy: string;
+  updateBy: string;
+  isDeleted: number;
 }
 
 /**
- * 文章详情
+ * 文章结果（搜索页）
  */
-export interface PostDetail extends Post {
-  comments?: PostComment[];
+export interface ArticleVO {
+  title: string;
+  content: string;
+}
+
+/**
+ * 文章详情（详情页）
+ */
+export interface ArticleDetailVO extends ArticleVO {
+  createBy: string;
+  createTime: string;
+  updateTime: string;
+  commentLikeDtoMap: CommentLikeDtoMap;
+}
+
+/**
+ * 文章详情页面的评论信息
+ */
+export interface CommentLikeDto {
+  commentId: number;
+  content: string;
+  parentUsername: string;
+  parentNickname: string;
+  currentUsername: string;
+  currentNickname: string;
+  createTime: string;
+  likeCount: number;
+}
+
+export interface CommentLikeDtoMap {
+  [key: string]: CommentLikeDto[];
+}
+
+/**
+ * 文章查询参数
+ */
+export interface PostSearchParams {
+  text: string;
 }
 
 /**
@@ -29,18 +65,6 @@ export interface PostComment {
   userName?: string;
   userAvatar?: string;
   createTime?: string;
-}
-
-/**
- * 文章查询参数
- */
-export interface PostSearchParams {
-  text?: string;
-  pageNum?: number;
-  pageSize?: number;
-  userId?: string;
-  notId?: string;
-  tags?: string[];
 }
 
 /**
