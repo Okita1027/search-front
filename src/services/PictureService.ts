@@ -10,6 +10,25 @@ const getPictureList = async (params: PictureSearchParams): Promise<ApiResponse<
   return await myAxios.get('/picture', { params });
 };
 
+/**
+ * 获取图片列表（后台管理系统）
+ * @return 图片列表（完整字段的数据）
+ */
+const getPictureListAll = async (): Promise<ApiResponse<Picture[]>> => {
+  return await myAxios.get('/picture/list');
+}
+
+/**
+ * 删除图片
+ * @param fileName - 文件名
+ * @returns 删除结果
+ */
+const deletePicture = async (fileName: string): Promise<ApiResponse<string>> => {
+  return await myAxios.delete('/picture', { params: { fileName } });
+}
+
 export default {
-  getPictureList
+  getPictureList,
+  getPictureListAll,
+  deletePicture,
 }; 
