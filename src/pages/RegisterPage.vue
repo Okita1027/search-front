@@ -31,21 +31,6 @@
             />
           </a-form-item>
           
-          <a-form-item label="昵称" name="nickname">
-            <a-input 
-              v-model:value="registerForm.nickname" 
-              placeholder="请输入昵称" 
-            />
-          </a-form-item>
-          
-          <a-form-item label="性别" name="gender">
-            <a-radio-group v-model:value="registerForm.gender">
-              <a-radio :value="1">男</a-radio>
-              <a-radio :value="2">女</a-radio>
-              <a-radio :value="0">保密</a-radio>
-            </a-radio-group>
-          </a-form-item>
-          
           <a-form-item>
             <a-button type="primary" html-type="submit" :loading="loading" block>
               注册
@@ -75,8 +60,6 @@ const registerForm = ref({
   username: '',
   password: '',
   confirmPassword: '',
-  nickname: '',
-  gender: 0,
 });
 
 const validateConfirmPassword = async (_rule: any, value: string) => {
@@ -100,10 +83,6 @@ const rules = {
   confirmPassword: [
     { required: true, message: '请确认密码', trigger: 'blur' },
     { validator: validateConfirmPassword, trigger: 'blur' }
-  ],
-  nickname: [
-    { required: true, message: '请输入昵称', trigger: 'blur' },
-    { max: 20, message: '昵称长度不能超过20个字符', trigger: 'blur' }
   ]
 };
 
@@ -113,9 +92,7 @@ const handleSubmit = async () => {
     // 构造注册请求参数
     const userData = {
       username: registerForm.value.username,
-      password: registerForm.value.password,
-      nickname: registerForm.value.nickname,
-      gender: registerForm.value.gender
+      password: registerForm.value.password
     };
     
     const res = await userService.registerUser(userData);
