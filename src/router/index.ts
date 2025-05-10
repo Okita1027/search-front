@@ -7,6 +7,9 @@ import ProfilePage from "../pages/ProfilePage.vue";
 import AdminLayout from "../layouts/AdminLayout.vue";
 import AdminLoginPage from "../pages/admin/AdminLoginPage.vue";
 import PostManagementPage from "../pages/admin/PostManagementPage.vue";
+import PictureManagementPage from "../pages/admin/PictureManagementPage.vue";
+import AudioManagementPage from "../pages/admin/AudioManagementPage.vue";
+import VideoManagementPage from "../pages/admin/VideoManagementPage.vue";
 import { authService } from "@/services";
 import { message } from "ant-design-vue";
 
@@ -68,6 +71,30 @@ const routes: Array<RouteRecordRaw> = [
         component: PostManagementPage,
         meta: {
           title: "文章管理",
+          requiresAdmin: true,
+        },
+      },
+      {
+        path: "pictures",
+        component: PictureManagementPage,
+        meta: {
+          title: "图片管理",
+          requiresAdmin: true,
+        },
+      },
+      {
+        path: "audios",
+        component: AudioManagementPage,
+        meta: {
+          title: "音频管理",
+          requiresAdmin: true,
+        },
+      },
+      {
+        path: "videos",
+        component: VideoManagementPage,
+        meta: {
+          title: "视频管理",
           requiresAdmin: true,
         },
       },
