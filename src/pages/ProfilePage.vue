@@ -48,8 +48,41 @@
         </a-descriptions>
       </a-card>
       
+      <!-- 用户评论过的文章列表 -->
+      <a-card v-if="userInfo.postTitleList && userInfo.postTitleList.length > 0" class="profile-card liked-posts-card" title="评论过的文章" :loading="loading">
+        <!-- 文章搜索框 -->
+        <div class="file-search">
+          <a-input-search
+            v-model:value="postSearchText"
+            placeholder="搜索文章标题"
+            style="width: 300px"
+            @change="handlePostSearch"
+            allowClear
+          />
+        </div>
+
+        <a-list
+          itemLayout="horizontal"
+          :dataSource="filteredPosts"
+          :grid="{ gutter: 16, column: 2 }"
+        >
+          <template #renderItem="{ item }">
+            <a-list-item>
+              <a-card hoverable class="post-card">
+                <template #title>
+                  <a @click="goToPostDetail(item)" class="post-title">{{ item }}</a>
+                </template>
+              </a-card>
+            </a-list-item>
+          </template>
+          <template #empty>
+            <a-empty description="没有找到匹配的文章" />
+          </template>
+        </a-list>
+      </a-card>
+      
       <!-- 用户上传的文件列表 -->
-      <a-card v-if="hasUploadedFiles" class="profile-card files-card" title="我上传的文件" :loading="loading">
+      <a-card v-if="hasUploadedFiles" class="profile-card files-card" title="上传的文件" :loading="loading">
         <!-- 文件搜索框 -->
         <div class="file-search">
           <a-input-search
@@ -255,7 +288,20 @@ const editModalVisible = ref(false);
 const userInfo = ref<any>({});
 const userFilesMap = ref<FileListMap>({});
 const fileSearchText = ref('');
+const postSearchText = ref(''); // 文章搜索文本
 const editFormRef = ref<FormInstance>();
+
+// 过滤后的文章列表
+const filteredPosts = computed(() => {
+  if (!userInfo.value.postTitleList || !postSearchText.value.trim()) {
+    return userInfo.value.postTitleList || [];
+  }
+
+  const searchTerm = postSearchText.value.toLowerCase();
+  return userInfo.value.postTitleList.filter(
+    (title: string) => title.toLowerCase().includes(searchTerm)
+  );
+});
 
 // 过滤后的文件列表
 const filteredFiles = computed(() => {
@@ -544,6 +590,11 @@ const handleFileSearch = () => {
   // 搜索功能通过computed属性filteredFiles实现
 };
 
+// 搜索文章
+const handlePostSearch = () => {
+  // 搜索功能通过computed属性filteredPosts实现
+};
+
 // 控制音频播放，确保同时只有一个音频在播放
 const handleAudioPlay = (event: Event) => {
   const currentAudio = event.target as HTMLAudioElement;
@@ -627,6 +678,14 @@ const handleDeleteFile = async (type: 'picture' | 'audio' | 'video', file: FileI
 onMounted(() => {
   fetchUserDetail();
 });
+
+// 跳转到文章详情页面
+const goToPostDetail = (postTitle: string) => {
+  router.push({
+    path: '/post/detail',
+    query: { text: postTitle }
+  });
+};
 </script>
 
 <style scoped>
@@ -641,6 +700,38 @@ onMounted(() => {
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
   margin-bottom: 24px;
+}
+
+.liked-posts-card {
+  margin-top: 24px;
+}
+
+.post-title {
+  color: #1890ff;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.post-title:hover {
+  color: #40a9ff;
+  text-decoration: underline;
+}
+
+.post-description {
+  color: #666;
+  font-size: 14px;
+}
+
+.post-card {
+  height: 100%;
+  margin-bottom: 16px;
+}
+
+.post-card :deep(.ant-card-head-title) {
+  padding: 12px 0;
 }
 
 .files-card {

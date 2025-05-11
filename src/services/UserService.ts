@@ -6,7 +6,7 @@ import { ApiResponse, User, UserDTO, UserSearchParams, UserVO, UserDetailVO, Adm
  * @param params - 请求参数
  * @returns 用户列表
  */
-const getUserList = async (params: UserSearchParams): Promise<ApiResponse<User[]>> => {
+const getUserList = async (params: UserSearchParams): Promise<ApiResponse<UserVO[]>> => {
   return await myAxios.get('/user', { params });
 };
 
@@ -76,7 +76,7 @@ const getUserDetail = async (username: string): Promise<ApiResponse<UserDetailVO
  * @param userData - 用户数据
  * @returns 更新结果
  */
-const updateUserInfo = async (userData: UserDTO): Promise<ApiResponse<any>> => {
+const updateUserInfo = async (userData: UserDTO): Promise<ApiResponse<string>> => {
   return await myAxios.put('/user/info', userData);
 };
 
@@ -85,7 +85,7 @@ const updateUserInfo = async (userData: UserDTO): Promise<ApiResponse<any>> => {
  * @param commentId - 评论ID
  * @returns 点赞结果
  */
-const favorComment = async (commentId: number): Promise<ApiResponse<any>> => {
+const favorComment = async (commentId: number): Promise<ApiResponse<string>> => {
   return await myAxios.post('/user/favor', null, { params: { commentId } });
 };
 

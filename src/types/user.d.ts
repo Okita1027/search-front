@@ -30,6 +30,7 @@ export interface UserDTO extends User {
  * 用户显示对象（首页搜索页面）
  */
 export interface UserVO {
+  username: string;
   nickname: string;
   profile: string;
   avatarUrl: string;
@@ -42,6 +43,8 @@ export interface UserDetailVO extends User {
   // KEY:文件类型
   // VALUE:文件列表（fileName、filePath）
   fileListMap: FileListMap;
+  // 点过赞的评论所属的文章名称列表
+  postTitleList: string[];
 }
 
 /**
