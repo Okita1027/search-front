@@ -4,6 +4,7 @@ import PostDetailPage from "../pages/post/DetailPage.vue";
 import LoginPage from "../pages/LoginPage.vue";
 import RegisterPage from "../pages/RegisterPage.vue";
 import ProfilePage from "../pages/ProfilePage.vue";
+import UserDetailPage from "../pages/UserDetailPage.vue";
 import AdminLayout from "../layouts/AdminLayout.vue";
 import AdminLoginPage from "../pages/admin/AdminLoginPage.vue";
 import PostManagementPage from "../pages/admin/PostManagementPage.vue";
@@ -53,6 +54,13 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: "个人中心",
       requiresAuth: true,
+    },
+  },
+  {
+    path: "/user/detail",
+    component: UserDetailPage,
+    meta: {
+      title: "用户详情",
     },
   },
   // 管理员路由
