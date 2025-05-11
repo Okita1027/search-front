@@ -40,7 +40,7 @@ const loginUser = async (loginData: { username: string, password: string }): Pro
  * 用户退出登录
  * @returns 退出结果
  */
-const logoutUser = async (): Promise<ApiResponse<any>> => {
+const logoutUser = async (): Promise<ApiResponse<string>> => {
   return await myAxios.post('/user/logout');
 };
 

@@ -227,7 +227,7 @@ const handleKickout = async (record: AdminUserVO) => {
   }
 
   try {
-    const res = await adminService.kickoutUser(record.username);
+    const res = await adminService.kickoutUser(record.id);
     if (res.code === 200) {
       message.success("踢出成功");
       fetchUsers();

@@ -24,11 +24,11 @@ const adminLogout = async (): Promise<ApiResponse<string>> => {
 
 /**
  * 踢出在线用户
- * @param tokenInfo - 用户token信息
+ * @param id - 用户ID
  * @returns 操作结果
  */
-const kickoutUser = async (tokenInfo: SaTokenInfo): Promise<ApiResponse<string>> => {
-  return await myAxios.post('/admin/kickout', null, { params: tokenInfo });
+const kickoutUser = async (id: number): Promise<ApiResponse<string>> => {
+  return await myAxios.post('/admin/kickout', null, { params: { id } });
 };
 
 /**
