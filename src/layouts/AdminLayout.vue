@@ -28,7 +28,7 @@ const handleLogout = async () => {
   try {
     const res = await adminService.adminLogout();
     if (res.code === 200) {
-      localStorage.removeItem('loginId');
+      localStorage.removeItem('tokenInfo');
       message.success('退出成功');
       router.push('/admin/login');
     }

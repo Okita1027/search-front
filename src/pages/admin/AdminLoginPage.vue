@@ -60,7 +60,10 @@ const onFinish = async (values: any) => {
   try {
     const res = await adminService.adminLogin(values);
     if (res.code === 200) {
-      localStorage.setItem('loginId', res.data);
+      const tokenData = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
+      tokenData.username = values.username;
+      
+      localStorage.setItem('tokenInfo', JSON.stringify(tokenData));
       message.success('登录成功');
       router.push('/admin/posts');
     } else {
