@@ -1,13 +1,21 @@
 import myAxios from '@/plugins/myAxios';
-import { ApiResponse, User, UserDTO, UserSearchParams, UserVO, UserDetailVO } from "@/types";
+import { ApiResponse, User, UserDTO, UserSearchParams, UserVO, UserDetailVO, AdminUserVO } from "@/types";
 
 /**
- * 获取用户列表
+ * 获取用户列表(搜索页面)
  * @param params - 请求参数
  * @returns 用户列表
  */
 const getUserList = async (params: UserSearchParams): Promise<ApiResponse<User[]>> => {
   return await myAxios.get('/user', { params });
+};
+
+/**
+ * 获取用户列表（后台管理页面）
+ * @returns 用户列表
+ */
+const getUserListAll = async (): Promise<ApiResponse<AdminUserVO[]>> => {
+  return await myAxios.get('/user/list');
 };
 
 /**
@@ -85,6 +93,7 @@ const comment = async (articleTitle: string, commentId: number, commentContent: 
 
 export default {
   getUserList,
+  getUserListAll,
   registerUser,
   loginUser,
   logoutUser,

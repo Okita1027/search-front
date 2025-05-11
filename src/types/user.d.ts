@@ -45,6 +45,14 @@ export interface UserDetailVO extends User {
 }
 
 /**
+ * 管理员用户显示对象（管理员中心页面）
+ */
+export interface AdminUserVO extends User {
+  // 是否登录
+  login: boolean;
+}
+
+/**
  * 用户查询参数（首页搜索页面）
  */
 export interface UserSearchParams {

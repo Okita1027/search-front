@@ -10,6 +10,7 @@ import PostManagementPage from "../pages/admin/PostManagementPage.vue";
 import PictureManagementPage from "../pages/admin/PictureManagementPage.vue";
 import AudioManagementPage from "../pages/admin/AudioManagementPage.vue";
 import VideoManagementPage from "../pages/admin/VideoManagementPage.vue";
+import UserManagementPage from "../pages/admin/UserManagementPage.vue";
 import { authService } from "@/services";
 import { message } from "ant-design-vue";
 
@@ -95,6 +96,14 @@ const routes: Array<RouteRecordRaw> = [
         component: VideoManagementPage,
         meta: {
           title: "视频管理",
+          requiresAdmin: true,
+        },
+      },
+      {
+        path: "users",
+        component: UserManagementPage,
+        meta: {
+          title: "用户管理",
           requiresAdmin: true,
         },
       },
