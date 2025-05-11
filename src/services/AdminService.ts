@@ -56,4 +56,5 @@ export default {
   adminLogout,
   kickoutUser,
   changeUserStatus,
+  deleteUser,
 }

@@ -34,6 +34,9 @@
         </template>
         <template v-if="column.key === 'action'">
           <a-space>
+            <a-button type="link" @click="showEditModal(record)">
+              编辑
+            </a-button>
             <a-popconfirm
               :title="record.status === 1 ? '确定要禁用该用户吗？' : '确定要启用该用户吗？'"
               @confirm="handleStatusChange(record)"
@@ -42,18 +45,49 @@
                 {{ record.status === 1 ? "禁用" : "启用" }}
               </a-button>
             </a-popconfirm>
-<!--            <a-popconfirm
-              v-if="record.login"
-              title="确定要踢出该用户吗？"
-              @confirm="handleKickout(record)"
+            <a-popconfirm
+              title="确定要删除该用户吗？"
+              @confirm="handleDelete(record)"
             >
-              <a-button type="link" danger>踢出</a-button>
+              <a-button type="link" danger>删除</a-button>
             </a-popconfirm>
-            <a-button v-else type="link" disabled>踢出</a-button>-->
           </a-space>
         </template>
       </template>
     </a-table>
+
+    <!-- 编辑用户信息的弹窗 -->
+    <a-modal
+      v-model:visible="editModalVisible"
+      title="编辑用户信息"
+      @ok="handleEditSubmit"
+      :confirmLoading="editLoading"
+    >
+      <a-form :model="editForm" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
+        <a-form-item label="用户名">
+          <a-input v-model:value="editForm.username" disabled />
+        </a-form-item>
+        <a-form-item label="昵称">
+          <a-input v-model:value="editForm.nickname" />
+        </a-form-item>
+        <a-form-item label="简介">
+          <a-textarea v-model:value="editForm.profile" />
+        </a-form-item>
+        <a-form-item label="性别">
+          <a-select v-model:value="editForm.gender">
+            <a-select-option :value="0">保密</a-select-option>
+            <a-select-option :value="1">男</a-select-option>
+            <a-select-option :value="2">女</a-select-option>
+          </a-select>
+        </a-form-item>
+        <a-form-item label="邮箱">
+          <a-input v-model:value="editForm.email" />
+        </a-form-item>
+        <a-form-item label="手机号">
+          <a-input v-model:value="editForm.phone" />
+        </a-form-item>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 
@@ -62,7 +96,7 @@ import { onMounted, ref } from "vue";
 import type { TablePaginationConfig } from "ant-design-vue";
 import { message } from "ant-design-vue";
 import { adminService, userService } from "@/services";
-import { AdminUserVO } from "@/types";
+import { AdminUserVO, UserDTO } from "@/types";
 
 interface SearchParams {
   username?: string;
@@ -75,6 +109,18 @@ const users = ref<AdminUserVO[]>([]);
 const searchParams = ref<SearchParams>({
   current: 1,
   pageSize: 10
+});
+
+// 编辑相关
+const editModalVisible = ref(false);
+const editLoading = ref(false);
+const editForm = ref<UserDTO>({
+  username: '',
+  nickname: '',
+  profile: '',
+  gender: 0,
+  email: '',
+  phone: ''
 });
 
 const columns = [
@@ -223,6 +269,53 @@ const handleStatusChange = async (record: AdminUserVO) => {
     }
   } catch (error) {
     message.error("操作失败");
+  }
+};
+
+// 显示编辑弹窗
+const showEditModal = (record: AdminUserVO) => {
+  editForm.value = {
+    username: record.username,
+    nickname: record.nickname || '',
+    profile: record.profile || '',
+    gender: record.gender || 0,
+    email: record.email || '',
+    phone: record.phone || ''
+  };
+  editModalVisible.value = true;
+};
+
+// 处理编辑提交
+const handleEditSubmit = async () => {
+  editLoading.value = true;
+  try {
+    const res = await userService.updateUserInfo(editForm.value);
+    if (res.code === 200) {
+      message.success("更新用户信息成功");
+      editModalVisible.value = false;
+      fetchUsers();
+    } else {
+      message.error(res.msg || "更新用户信息失败");
+    }
+  } catch (error) {
+    message.error("更新用户信息失败");
+  } finally {
+    editLoading.value = false;
+  }
+};
+
+// 处理删除用户
+const handleDelete = async (record: AdminUserVO) => {
+  try {
+    const res = await adminService.deleteUser(record.id);
+    if (res.code === 200) {
+      message.success("删除用户成功");
+      fetchUsers();
+    } else {
+      message.error(res.msg || "删除用户失败");
+    }
+  } catch (error) {
+    message.error("删除用户失败");
   }
 };
 
