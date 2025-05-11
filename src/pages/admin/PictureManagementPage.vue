@@ -2,21 +2,32 @@
   <div class="picture-management">
     <div class="header">
       <h2>图片管理</h2>
-      <a-upload
-        :customRequest="handleUpload"
-        :showUploadList="false"
-        accept="image/*"
-      >
-        <a-button type="primary">
-          上传图片
-        </a-button>
-      </a-upload>
+      <div class="search-box">
+        <a-input-search
+          v-model:value="searchParams.fileName"
+          placeholder="搜索文件名"
+          style="width: 200px"
+          @search="handleSearch"
+          allowClear
+        />
+        <a-upload
+          :customRequest="handleUpload"
+          :showUploadList="false"
+          accept="image/*"
+        >
+          <a-button type="primary">
+            上传图片
+          </a-button>
+        </a-upload>
+      </div>
     </div>
 
     <a-table
       :columns="columns"
       :data-source="pictures"
       :loading="loading"
+      :pagination="pagination"
+      @change="handleTableChange"
       row-key="fileName"
     >
       <template #bodyCell="{ column, record }">
@@ -43,6 +54,14 @@ import { pictureService, fileUploadService } from '@/services';
 
 const loading = ref(false);
 const pictures = ref<any[]>([]);
+const pagination = ref({
+  current: 1,
+  pageSize: 10,
+  total: 0,
+});
+const searchParams = ref({
+  fileName: '',
+});
 
 // 获取文件完整URL
 const getFileUrl = (filePath: string) => {
@@ -79,7 +98,20 @@ const fetchPictures = async () => {
   try {
     const res = await pictureService.getPictureListAll();
     if (res.code === 200) {
-      pictures.value = res.data;
+      // 根据搜索条件过滤数据
+      const filteredData = res.data.filter((picture: any) => {
+        if (searchParams.value.fileName) {
+          return picture.fileName.toLowerCase().includes(searchParams.value.fileName.toLowerCase());
+        }
+        return true;
+      });
+      
+      pagination.value.total = filteredData.length;
+      
+      // 分页处理
+      const start = (pagination.value.current - 1) * pagination.value.pageSize;
+      const end = start + pagination.value.pageSize;
+      pictures.value = filteredData.slice(start, end);
     }
   } catch (error) {
     message.error('获取图片列表失败');
@@ -123,6 +155,19 @@ const handleDelete = async (fileName: string) => {
   }
 };
 
+// 处理搜索
+const handleSearch = () => {
+  pagination.value.current = 1;
+  fetchPictures();
+};
+
+// 处理表格分页变化
+const handleTableChange = (paginationInfo: any) => {
+  pagination.value.current = paginationInfo.current;
+  pagination.value.pageSize = paginationInfo.pageSize;
+  fetchPictures();
+};
+
 onMounted(() => {
   fetchPictures();
 });
@@ -138,6 +183,12 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .preview-image {

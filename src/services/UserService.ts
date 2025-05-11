@@ -1,5 +1,5 @@
 import myAxios from '@/plugins/myAxios';
-import { ApiResponse, User, UserDTO, UserSearchParams, UserVO, UserDetailVO, AdminUserVO } from "@/types";
+import { ApiResponse, User, UserDTO, UserSearchParams, UserVO, UserDetailVO, AdminUserVO, SaTokenInfo } from "@/types";
 
 /**
  * 获取用户列表(搜索页面)
@@ -23,7 +23,7 @@ const getUserListAll = async (): Promise<ApiResponse<AdminUserVO[]>> => {
  * @param userData - 用户数据
  * @returns 注册结果
  */
-const registerUser = async (userData: any): Promise<ApiResponse<any>> => {
+const registerUser = async (userData: User): Promise<ApiResponse<string>> => {
   return await myAxios.post('/user/register', userData);
 };
 
@@ -32,7 +32,7 @@ const registerUser = async (userData: any): Promise<ApiResponse<any>> => {
  * @param loginData - 登录数据
  * @returns 登录结果和token信息
  */
-const loginUser = async (loginData: { username: string, password: string }): Promise<ApiResponse<any>> => {
+const loginUser = async (loginData: { username: string, password: string }): Promise<ApiResponse<SaTokenInfo>> => {
   return await myAxios.post('/user/login', loginData);
 };
 
@@ -43,6 +43,14 @@ const loginUser = async (loginData: { username: string, password: string }): Pro
 const logoutUser = async (): Promise<ApiResponse<string>> => {
   return await myAxios.post('/user/logout');
 };
+
+/**
+ * 获取当前登陆用户
+ * @returns 当前登陆的用户信息
+ */
+const currentLoginUser = async (): Promise<ApiResponse<User>> => {
+  return await myAxios.get('/user/current');
+}
 
 /**
  * 获取用户信息（首页搜索页面）
@@ -97,6 +105,7 @@ export default {
   registerUser,
   loginUser,
   logoutUser,
+  currentLoginUser,
   getUserInfo,
   getUserDetail,
   updateUserInfo,

@@ -42,14 +42,14 @@
                 {{ record.status === 1 ? "禁用" : "启用" }}
               </a-button>
             </a-popconfirm>
-            <a-popconfirm
+<!--            <a-popconfirm
               v-if="record.login"
               title="确定要踢出该用户吗？"
               @confirm="handleKickout(record)"
             >
               <a-button type="link" danger>踢出</a-button>
             </a-popconfirm>
-            <a-button v-else type="link" disabled>踢出</a-button>
+            <a-button v-else type="link" disabled>踢出</a-button>-->
           </a-space>
         </template>
       </template>
@@ -173,16 +173,23 @@ const fetchUsers = async () => {
   try {
     const res = await userService.getUserListAll();
     if (res.code === 200) {
-      const filteredData = res.data.filter(user => {
+      // 存储所有用户数据用于本地过滤和分页
+      const allUsers = [...res.data];
+      
+      // 根据搜索条件过滤
+      const filteredData = allUsers.filter(user => {
         if (searchParams.value.username) {
           return user.username.includes(searchParams.value.username);
         }
         return true;
       });
+      
+      // 更新分页信息
       pagination.value.total = filteredData.length;
-
-      const start = (searchParams.value.current - 1) * searchParams.value.pageSize;
-      const end = start + searchParams.value.pageSize;
+      
+      // 本地分页处理
+      const start = (pagination.value.current as number - 1) * (pagination.value.pageSize as number);
+      const end = start + (pagination.value.pageSize as number);
       users.value = filteredData.slice(start, end);
     }
   } catch (error) {
@@ -194,14 +201,14 @@ const fetchUsers = async () => {
 
 // 处理搜索
 const handleSearch = () => {
-  searchParams.value.current = 1;
+  pagination.value.current = 1;
   fetchUsers();
 };
 
 // 处理表格变化（分页、排序等）
 const handleTableChange = (pag: TablePaginationConfig) => {
-  searchParams.value.current = pag.current || 1;
-  searchParams.value.pageSize = pag.pageSize || 10;
+  pagination.value.current = pag.current || 1;
+  pagination.value.pageSize = pag.pageSize || 10;
   fetchUsers();
 };
 

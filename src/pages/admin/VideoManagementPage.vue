@@ -2,21 +2,32 @@
   <div class="video-management">
     <div class="header">
       <h2>视频管理</h2>
-      <a-upload
-        :customRequest="handleUpload"
-        :showUploadList="false"
-        accept="video/*"
-      >
-        <a-button type="primary">
-          上传视频
-        </a-button>
-      </a-upload>
+      <div class="search-box">
+        <a-input-search
+          v-model:value="searchParams.fileName"
+          placeholder="搜索文件名"
+          style="width: 200px"
+          @search="handleSearch"
+          allowClear
+        />
+        <a-upload
+          :customRequest="handleUpload"
+          :showUploadList="false"
+          accept="video/*"
+        >
+          <a-button type="primary">
+            上传视频
+          </a-button>
+        </a-upload>
+      </div>
     </div>
 
     <a-table
       :columns="columns"
       :data-source="videos"
       :loading="loading"
+      :pagination="pagination"
+      @change="handleTableChange"
       row-key="fileName"
     >
       <template #bodyCell="{ column, record }">
@@ -43,6 +54,14 @@ import { videoService, fileUploadService } from '@/services';
 
 const loading = ref(false);
 const videos = ref<any[]>([]);
+const pagination = ref({
+  current: 1,
+  pageSize: 10,
+  total: 0,
+});
+const searchParams = ref({
+  fileName: '',
+});
 
 // 获取文件完整URL
 const getFileUrl = (filePath: string) => {
@@ -79,7 +98,20 @@ const fetchVideos = async () => {
   try {
     const res = await videoService.getVideoListAll();
     if (res.code === 200) {
-      videos.value = res.data;
+      // 根据搜索条件过滤数据
+      const filteredData = res.data.filter((video: any) => {
+        if (searchParams.value.fileName) {
+          return video.fileName.toLowerCase().includes(searchParams.value.fileName.toLowerCase());
+        }
+        return true;
+      });
+      
+      pagination.value.total = filteredData.length;
+      
+      // 分页处理
+      const start = (pagination.value.current - 1) * pagination.value.pageSize;
+      const end = start + pagination.value.pageSize;
+      videos.value = filteredData.slice(start, end);
     }
   } catch (error) {
     message.error('获取视频列表失败');
@@ -123,6 +155,19 @@ const handleDelete = async (fileName: string) => {
   }
 };
 
+// 处理搜索
+const handleSearch = () => {
+  pagination.value.current = 1;
+  fetchVideos();
+};
+
+// 处理表格分页变化
+const handleTableChange = (paginationInfo: any) => {
+  pagination.value.current = paginationInfo.current;
+  pagination.value.pageSize = paginationInfo.pageSize;
+  fetchVideos();
+};
+
 onMounted(() => {
   fetchVideos();
 });
@@ -138,6 +183,12 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .preview-video {

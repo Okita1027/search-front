@@ -41,6 +41,16 @@ const changeUserStatus = async (username: string, status: number): Promise<ApiRe
   return await myAxios.put('/admin/status', null, { params: { username, status } });
 };
 
+
+/**
+ * 删除用户
+ * @param id - 用户ID
+ * @returns 操作结果
+ */
+const deleteUser = async (id: number): Promise<ApiResponse<string>> => {
+  return await myAxios.delete(`/admin/user`, { params: { id } });
+}
+
 export default {
   adminLogin,
   adminLogout,

@@ -2,15 +2,26 @@
   <div class="post-management">
     <div class="header">
       <h2>文章管理</h2>
-      <a-button type="primary" @click="showAddModal">
-        新增文章
-      </a-button>
+      <div class="search-box">
+        <a-input-search
+          v-model:value="searchParams.title"
+          placeholder="搜索文章标题"
+          style="width: 200px"
+          @search="handleSearch"
+          allowClear
+        />
+        <a-button type="primary" @click="showAddModal">
+          新增文章
+        </a-button>
+      </div>
     </div>
 
     <a-table
       :columns="columns"
       :data-source="posts"
       :loading="loading"
+      :pagination="pagination"
+      @change="handleTableChange"
       row-key="id"
     >
       <template #bodyCell="{ column, record }">
@@ -67,6 +78,14 @@ const modalTitle = ref("新增文章");
 const formRef = ref<FormInstance>();
 const posts = ref<any[]>([]);
 const currentId = ref<number | null>(null);
+const pagination = ref({
+  current: 1,
+  pageSize: 10,
+  total: 0
+});
+const searchParams = ref({
+  title: ""
+});
 
 const formState = reactive({
   title: "",
@@ -127,7 +146,20 @@ const fetchPosts = async () => {
   try {
     const res = await postService.getPostListAll();
     if (res.code === 200) {
-      posts.value = res.data;
+      // 根据搜索条件过滤数据
+      const filteredData = res.data.filter((post: any) => {
+        if (searchParams.value.title) {
+          return post.title.toLowerCase().includes(searchParams.value.title.toLowerCase());
+        }
+        return true;
+      });
+      
+      pagination.value.total = filteredData.length;
+      
+      // 分页处理
+      const start = (pagination.value.current - 1) * pagination.value.pageSize;
+      const end = start + pagination.value.pageSize;
+      posts.value = filteredData.slice(start, end);
     }
   } catch (error) {
     message.error("获取文章列表失败");
@@ -200,6 +232,19 @@ const handleDelete = async (id: number) => {
   }
 };
 
+// 处理搜索
+const handleSearch = () => {
+  pagination.value.current = 1;
+  fetchPosts();
+};
+
+// 处理表格分页变化
+const handleTableChange = (paginationInfo: any) => {
+  pagination.value.current = paginationInfo.current;
+  pagination.value.pageSize = paginationInfo.pageSize;
+  fetchPosts();
+};
+
 onMounted(() => {
   fetchPosts();
 });
@@ -215,6 +260,12 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .danger {
