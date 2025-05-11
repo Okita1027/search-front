@@ -64,6 +64,7 @@ const onFinish = async (values: any) => {
       tokenData.username = values.username;
       
       localStorage.setItem('tokenInfo', JSON.stringify(tokenData));
+      
       message.success('登录成功');
       router.push('/admin/posts');
     } else {

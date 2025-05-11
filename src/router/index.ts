@@ -144,10 +144,19 @@ router.beforeEach((to, from, next) => {
     }
   } else if (to.meta.requiresAdmin) {
     // 检查是否是管理员
-    const loginId = localStorage.getItem('loginId');
-    if (!loginId || parseInt(loginId) >= 10) {
+    const tokenInfo = authService.getTokenInfo();
+    if (!tokenInfo || !tokenInfo.loginId || parseInt(tokenInfo.loginId) >= 10) {
       message.error('权限不足');
       next('/admin/login');
+    } else {
+      next();
+    }
+  } else if (to.path === '/admin/login') {
+    // 如果用户访问管理员登录页面，检查是否已经有管理员权限
+    const tokenInfo = authService.getTokenInfo();
+    if (tokenInfo && tokenInfo.loginId && parseInt(tokenInfo.loginId) < 10) {
+      // 已有管理员权限，直接跳转到管理界面
+      next('/admin/posts');
     } else {
       next();
     }

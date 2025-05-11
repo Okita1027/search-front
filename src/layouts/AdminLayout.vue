@@ -8,6 +8,7 @@
         <router-link to="/admin/audios" class="nav-link">音频管理</router-link>
         <router-link to="/admin/videos" class="nav-link">视频管理</router-link>
         <router-link to="/admin/users" class="nav-link">用户管理</router-link>
+        <router-link to="/" class="nav-link">回到搜索平台</router-link>
         <a @click="handleLogout" class="nav-link">退出登录</a>
       </div>
     </a-layout-header>
