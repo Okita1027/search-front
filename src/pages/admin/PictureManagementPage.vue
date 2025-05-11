@@ -32,7 +32,7 @@
     >
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'preview'">
-          <img :src="getFileUrl(record.filePath)" class="preview-image" />
+          <img :src="getFileUrl(record.filePath, record.source)" class="preview-image" />
         </template>
         <template v-if="column.key === 'action'">
           <a-popconfirm
@@ -64,7 +64,14 @@ const searchParams = ref({
 });
 
 // 获取文件完整URL
-const getFileUrl = (filePath: string) => {
+const getFileUrl = (filePath: string, source: number) => {
+  // 如果是网络图片(source=1)，直接返回完整URL
+  if (source === 1) {
+    // 移除可能存在的@前缀
+    return filePath.startsWith('@') ? filePath.substring(1) : filePath;
+  }
+  
+  // 本地图片，拼接基础URL
   const baseUrl = process.env.VUE_APP_API_BASE_URL || '';
   return `${baseUrl}/${filePath}`;
 };
@@ -81,9 +88,30 @@ const columns = [
     key: 'fileName',
   },
   {
+    title: '文件地址',
+    dataIndex: 'filePath',
+    key: 'filePath',
+  },
+  {
     title: '上传时间',
     dataIndex: 'createTime',
     key: 'createTime',
+  },
+  {
+    title: '来源',
+    dataIndex: 'source',
+    key: 'source',
+    customRender: (text: number) => {
+      return text === 0 ? '本地' : '网络';
+    }
+  },
+  {
+    title: '上传人',
+    dataIndex: 'createBy',
+    key: 'createBy',
+    customRender: ({ text: createBy }: { text: string }) => {
+      return createBy || "管理员";
+    }
   },
   {
     title: '操作',

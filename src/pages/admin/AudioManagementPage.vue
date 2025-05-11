@@ -81,6 +81,11 @@ const columns = [
     key: 'fileName',
   },
   {
+    title: '文件路径',
+    dataIndex: 'filePath',
+    key: 'filePath',
+  },
+  {
     title: '上传时间',
     dataIndex: 'createTime',
     key: 'createTime',
