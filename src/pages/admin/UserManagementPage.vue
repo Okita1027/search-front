@@ -24,7 +24,12 @@
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'status'">
           <a-tag :color="record.status === 1 ? 'success' : 'error'">
-            {{ record.status === 1 ? '正常' : '已禁用' }}
+            {{ record.status === 1 ? "正常" : "已禁用" }}
+          </a-tag>
+        </template>
+        <template v-if="column.key === 'login'">
+          <a-tag :color="record.login ? 'success' : 'default'">
+            {{ record.login ? "在线" : "离线" }}
           </a-tag>
         </template>
         <template v-if="column.key === 'action'">
@@ -34,15 +39,17 @@
               @confirm="handleStatusChange(record)"
             >
               <a-button type="link" :danger="record.status === 1">
-                {{ record.status === 1 ? '禁用' : '启用' }}
+                {{ record.status === 1 ? "禁用" : "启用" }}
               </a-button>
             </a-popconfirm>
             <a-popconfirm
+              v-if="record.login"
               title="确定要踢出该用户吗？"
               @confirm="handleKickout(record)"
             >
               <a-button type="link" danger>踢出</a-button>
             </a-popconfirm>
+            <a-button v-else type="link" disabled>踢出</a-button>
           </a-space>
         </template>
       </template>
@@ -51,23 +58,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { message } from 'ant-design-vue';
-import { userService, adminService } from '@/services';
-import type { TablePaginationConfig } from 'ant-design-vue';
-
-interface User {
-  id: number;
-  username: string;
-  nickname: string;
-  status: number;
-  createTime: string;
-  lastLoginTime: string;
-  tokenInfo?: {
-    tokenValue: string;
-    loginId: string;
-  };
-}
+import { onMounted, ref } from "vue";
+import type { TablePaginationConfig } from "ant-design-vue";
+import { message } from "ant-design-vue";
+import { adminService, userService } from "@/services";
+import { AdminUserVO } from "@/types";
 
 interface SearchParams {
   username?: string;
@@ -76,7 +71,7 @@ interface SearchParams {
 }
 
 const loading = ref(false);
-const users = ref<User[]>([]);
+const users = ref<AdminUserVO[]>([]);
 const searchParams = ref<SearchParams>({
   current: 1,
   pageSize: 10
@@ -84,36 +79,84 @@ const searchParams = ref<SearchParams>({
 
 const columns = [
   {
-    title: '用户名',
-    dataIndex: 'username',
-    key: 'username',
+    title: "ID",
+    dataIndex: "id",
+    key: "id",
+    width: 50
   },
   {
-    title: '昵称',
-    dataIndex: 'nickname',
-    key: 'nickname',
+    title: "用户名",
+    dataIndex: "username",
+    key: "username",
+    width: 100
   },
   {
-    title: '状态',
-    dataIndex: 'status',
-    key: 'status',
+    title: "昵称",
+    dataIndex: "nickname",
+    key: "nickname",
+    width: 150
+  },
+  {
+    title: "头像",
+    dataIndex: "avatarUrl",
+    key: "avatarUrl",
     width: 100,
   },
   {
-    title: '注册时间',
-    dataIndex: 'createTime',
-    key: 'createTime',
-  },
-  {
-    title: '最后登录时间',
-    dataIndex: 'lastLoginTime',
-    key: 'lastLoginTime',
-  },
-  {
-    title: '操作',
-    key: 'action',
+    title: "简介",
+    dataIndex: "profile",
+    key: "profile",
     width: 200,
   },
+  {
+    title: "性别",
+    dataIndex: "gender",
+    key: "gender",
+    width: 50,
+    customRender: ({ text }) => {
+      switch (text) {
+        case 0: return "保密";
+        case 1: return "男";
+        case 2: return "女";
+        default: return "保密";
+      }
+    }
+  },
+  {
+    title: "邮箱",
+    dataIndex: "email",
+    key: "email",
+    width: 100
+  },
+  {
+    title: "手机号",
+    dataIndex: "phone",
+    key: "phone",
+    width: 100
+  },
+  {
+    title: "账户状态",
+    dataIndex: "status",
+    key: "status",
+    width: 75
+  },
+  {
+    title: "登录状态",
+    dataIndex: "login",
+    key: "login",
+    width: 75
+  },
+  {
+    title: "注册时间",
+    dataIndex: "createTime",
+    key: "createTime",
+    width: 125
+  },
+  {
+    title: "操作",
+    key: "action",
+    width: 100
+  }
 ];
 
 const pagination = ref<TablePaginationConfig>({
@@ -121,7 +164,7 @@ const pagination = ref<TablePaginationConfig>({
   pageSize: 10,
   total: 0,
   showSizeChanger: true,
-  showQuickJumper: true,
+  showQuickJumper: true
 });
 
 // 获取用户列表
@@ -130,15 +173,20 @@ const fetchUsers = async () => {
   try {
     const res = await userService.getUserListAll();
     if (res.code === 200) {
-      users.value = res.data;
-      // 由于getUserListAll返回的是完整列表，我们需要手动处理分页
+      const filteredData = res.data.filter(user => {
+        if (searchParams.value.username) {
+          return user.username.includes(searchParams.value.username);
+        }
+        return true;
+      });
+      pagination.value.total = filteredData.length;
+
       const start = (searchParams.value.current - 1) * searchParams.value.pageSize;
       const end = start + searchParams.value.pageSize;
-      users.value = res.data.slice(start, end);
-      pagination.value.total = res.data.length;
+      users.value = filteredData.slice(start, end);
     }
   } catch (error) {
-    message.error('获取用户列表失败');
+    message.error("获取用户列表失败");
   } finally {
     loading.value = false;
   }
@@ -158,34 +206,34 @@ const handleTableChange = (pag: TablePaginationConfig) => {
 };
 
 // 处理状态变更
-const handleStatusChange = async (record: User) => {
+const handleStatusChange = async (record: AdminUserVO) => {
   try {
     const newStatus = record.status === 1 ? 0 : 1;
     const res = await adminService.changeUserStatus(record.username, newStatus);
     if (res.code === 200) {
-      message.success(`${newStatus === 1 ? '启用' : '禁用'}成功`);
+      message.success(`${newStatus === 1 ? "启用" : "禁用"}成功`);
       fetchUsers();
     }
   } catch (error) {
-    message.error('操作失败');
+    message.error("操作失败");
   }
 };
 
 // 处理踢出用户
-const handleKickout = async (record: User) => {
-  if (!record.tokenInfo) {
-    message.error('该用户未登录');
+const handleKickout = async (record: AdminUserVO) => {
+  if (!record.login) {
+    message.error("该用户未登录");
     return;
   }
-  
+
   try {
-    const res = await adminService.kickoutUser(record.tokenInfo);
+    const res = await adminService.kickoutUser(record.username);
     if (res.code === 200) {
-      message.success('踢出成功');
+      message.success("踢出成功");
       fetchUsers();
     }
   } catch (error) {
-    message.error('踢出失败');
+    message.error("踢出失败");
   }
 };
 

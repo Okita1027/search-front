@@ -55,49 +55,70 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
-import { message } from 'ant-design-vue';
-import type { FormInstance } from 'ant-design-vue';
-import { postService } from '@/services';
+import { onMounted, reactive, ref } from "vue";
+import type { FormInstance } from "ant-design-vue";
+import { message } from "ant-design-vue";
+import { postService } from "@/services";
 
 const loading = ref(false);
 const modalVisible = ref(false);
 const modalLoading = ref(false);
-const modalTitle = ref('新增文章');
+const modalTitle = ref("新增文章");
 const formRef = ref<FormInstance>();
 const posts = ref<any[]>([]);
 const currentId = ref<number | null>(null);
 
 const formState = reactive({
-  title: '',
-  content: '',
+  title: "",
+  content: ""
 });
 
 const rules = {
-  title: [{ required: true, message: '请输入标题' }],
-  content: [{ required: true, message: '请输入内容' }],
+  title: [{ required: true, message: "请输入标题" }],
+  content: [{ required: true, message: "请输入内容" }]
 };
 
 const columns = [
   {
-    title: 'ID',
-    dataIndex: 'id',
-    key: 'id',
+    title: "ID",
+    dataIndex: "id",
+    key: "id"
   },
   {
-    title: '标题',
-    dataIndex: 'title',
-    key: 'title',
+    title: "标题",
+    dataIndex: "title",
+    key: "title"
   },
   {
-    title: '创建时间',
-    dataIndex: 'createTime',
-    key: 'createTime',
+    title: "创建时间",
+    dataIndex: "createTime",
+    key: "createTime"
   },
   {
-    title: '操作',
-    key: 'action',
+    title: "更新时间",
+    dataIndex: "updateTime",
+    key: "updateTime"
   },
+  {
+    title: "创建人",
+    dataIndex: "createBy",
+    key: "createBy",
+    customRender: ({ text: createBy }: { text: string }) => {
+      return createBy || "管理员";
+    }
+  },
+  {
+    title: "修改人",
+    dataIndex: "updateBy",
+    key: "updateBy",
+    customRender: ({ text: updateBy }: { text: string }) => {
+      return updateBy || "管理员";
+    }
+  },
+  {
+    title: "操作",
+    key: "action"
+  }
 ];
 
 // 获取文章列表
@@ -109,7 +130,7 @@ const fetchPosts = async () => {
       posts.value = res.data;
     }
   } catch (error) {
-    message.error('获取文章列表失败');
+    message.error("获取文章列表失败");
   } finally {
     loading.value = false;
   }
@@ -117,16 +138,16 @@ const fetchPosts = async () => {
 
 // 显示新增弹窗
 const showAddModal = () => {
-  modalTitle.value = '新增文章';
+  modalTitle.value = "新增文章";
   currentId.value = null;
-  formState.title = '';
-  formState.content = '';
+  formState.title = "";
+  formState.content = "";
   modalVisible.value = true;
 };
 
 // 显示编辑弹窗
 const showEditModal = (record: any) => {
-  modalTitle.value = '编辑文章';
+  modalTitle.value = "编辑文章";
   currentId.value = record.id;
   formState.title = record.title;
   formState.content = record.content;
@@ -143,10 +164,10 @@ const handleModalOk = async () => {
       // 编辑文章
       const res = await postService.updatePost({
         id: currentId.value,
-        ...formState,
+        ...formState
       });
       if (res.code === 200) {
-        message.success('更新成功');
+        message.success("更新成功");
         modalVisible.value = false;
         fetchPosts();
       }
@@ -154,7 +175,7 @@ const handleModalOk = async () => {
       // 新增文章
       const res = await postService.addPost(formState);
       if (res.code === 200) {
-        message.success('新增成功');
+        message.success("新增成功");
         modalVisible.value = false;
         fetchPosts();
       }
@@ -171,11 +192,11 @@ const handleDelete = async (id: number) => {
   try {
     const res = await postService.deletePost(id);
     if (res.code === 200) {
-      message.success('删除成功');
+      message.success("删除成功");
       fetchPosts();
     }
   } catch (error) {
-    message.error('删除失败');
+    message.error("删除失败");
   }
 };
 
