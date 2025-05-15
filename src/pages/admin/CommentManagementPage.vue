@@ -29,7 +29,7 @@
 
     <a-table
       :columns="columns"
-      :data-source="comments"
+      :data-source="paginatedComments"
       :loading="loading"
       :pagination="pagination"
       @change="handleTableChange"
@@ -57,23 +57,63 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, computed } from "vue";
 import { message } from "ant-design-vue";
 import { commentService } from "@/services";
-import { ArticleComment, CommentQueryParams } from "@/types/comment";
+import { ArticleComment, CommentSearchParams } from "@/types/comment";
 
 const loading = ref(false);
-const comments = ref<ArticleComment[]>([]);
+const allComments = ref<ArticleComment[]>([]);
 const pagination = ref({
   current: 1,
   pageSize: 10,
   total: 0
 });
 
-const searchParams = ref<CommentQueryParams>({
+const searchParams = ref<CommentSearchParams>({
   content: "",
   articleTitle: "",
   username: ""
+});
+
+// 根据搜索条件过滤评论
+const filteredComments = computed(() => {
+  let result = allComments.value;
+  
+  // 按内容搜索
+  if (searchParams.value.content) {
+    const keyword = searchParams.value.content.toLowerCase();
+    result = result.filter(comment => 
+      comment.content && comment.content.toLowerCase().includes(keyword)
+    );
+  }
+  
+  // 按文章标题搜索
+  if (searchParams.value.articleTitle) {
+    const keyword = searchParams.value.articleTitle.toLowerCase();
+    result = result.filter(comment => 
+      comment.articleTitle && comment.articleTitle.toLowerCase().includes(keyword)
+    );
+  }
+  
+  // 按用户名搜索
+  if (searchParams.value.username) {
+    const keyword = searchParams.value.username.toLowerCase();
+    result = result.filter(comment => 
+      (comment.currentUsername && comment.currentUsername.toLowerCase().includes(keyword)) ||
+      (comment.currentNickname && comment.currentNickname.toLowerCase().includes(keyword))
+    );
+  }
+  
+  return result;
+});
+
+// 分页数据
+const paginatedComments = computed(() => {
+  // 分页处理
+  const start = (pagination.value.current - 1) * pagination.value.pageSize;
+  const end = start + pagination.value.pageSize;
+  return filteredComments.value.slice(start, end);
 });
 
 const columns = [
@@ -143,42 +183,21 @@ const truncateText = (text: string, maxLength: number) => {
 const fetchComments = async () => {
   loading.value = true;
   try {
-    let res;
-    
-    // 判断是否有搜索条件
-    const hasSearchParam = searchParams.value.content || 
-                          searchParams.value.articleTitle || 
-                          searchParams.value.username;
-    
-    if (hasSearchParam) {
-      // 带条件查询
-      res = await commentService.queryComments(searchParams.value);
-    } else {
-      // 查询所有
-      res = await commentService.getAllComments();
-    }
+    const res = await commentService.getAllComments();
     
     // 处理嵌套的数据结构
     if (res.code === 200) {
-      let allComments;
       if (Array.isArray(res.data)) {
         // 数据直接是数组
-        allComments = res.data;
+        allComments.value = res.data;
       } else if (res.data && res.data.data && Array.isArray(res.data.data)) {
         // 数据是嵌套的
-        allComments = res.data.data;
+        allComments.value = res.data.data;
       } else {
         // 不符合预期的结构
         console.error("响应数据结构异常:", res);
-        allComments = [];
+        allComments.value = [];
       }
-      
-      pagination.value.total = allComments.length;
-      
-      // 分页处理
-      const start = (pagination.value.current - 1) * pagination.value.pageSize;
-      const end = start + pagination.value.pageSize;
-      comments.value = allComments.slice(start, end);
     } else {
       message.error(res.message || "获取评论列表失败");
     }
@@ -209,18 +228,25 @@ const handleDelete = async (id: number) => {
 // 处理搜索
 const handleSearch = () => {
   pagination.value.current = 1;
-  fetchComments();
+  updatePaginationTotal();
 };
 
 // 处理表格分页变化
 const handleTableChange = (paginationInfo: any) => {
   pagination.value.current = paginationInfo.current;
   pagination.value.pageSize = paginationInfo.pageSize;
-  fetchComments();
+  updatePaginationTotal();
+};
+
+// 更新分页总数
+const updatePaginationTotal = () => {
+  pagination.value.total = filteredComments.value.length;
 };
 
 onMounted(() => {
-  fetchComments();
+  fetchComments().then(() => {
+    updatePaginationTotal();
+  });
 });
 </script>
 

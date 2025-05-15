@@ -19,6 +19,15 @@ export interface ArticleComment {
 }
 
 /**
+ * 评论搜索参数
+ */
+export interface CommentSearchParams {
+  content?: string;
+  articleTitle?: string;
+  username?: string;
+}
+
+/**
  * 评论删除参数
  */
 export interface DeleteCommentParams {
