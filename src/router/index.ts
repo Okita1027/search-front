@@ -12,6 +12,7 @@ import PictureManagementPage from "../pages/admin/PictureManagementPage.vue";
 import AudioManagementPage from "../pages/admin/AudioManagementPage.vue";
 import VideoManagementPage from "../pages/admin/VideoManagementPage.vue";
 import UserManagementPage from "../pages/admin/UserManagementPage.vue";
+import CommentManagementPage from "../pages/admin/CommentManagementPage.vue";
 import { authService } from "@/services";
 import { message } from "ant-design-vue";
 
@@ -112,6 +113,14 @@ const routes: Array<RouteRecordRaw> = [
         component: UserManagementPage,
         meta: {
           title: "用户管理",
+          requiresAdmin: true,
+        },
+      },
+      {
+        path: "comments",
+        component: CommentManagementPage,
+        meta: {
+          title: "评论管理",
           requiresAdmin: true,
         },
       },

@@ -6,6 +6,7 @@ import videoService from './VideoService';
 import fileUploadService from './UploadService';
 import authService from './AuthService';
 import adminService from './AdminService';
+import commentService from './CommentService';
 
 export {
   postService,
@@ -15,7 +16,8 @@ export {
   videoService,
   fileUploadService,
   authService,
-  adminService
+  adminService,
+  commentService
 };
 
 export default {
@@ -26,5 +28,6 @@ export default {
   videoService,
   fileUploadService,
   authService,
-  adminService
+  adminService,
+  commentService
 }; 

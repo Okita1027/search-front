@@ -126,6 +126,53 @@
         "security": []
       }
     },
+    "/user/current": {
+      "get": {
+        "summary": "获取当前登陆的用户信息",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultContentUser",
+                  "description": "当前登陆的用户信息"
+                },
+                "example": {
+                  "code": 0,
+                  "message": "",
+                  "data": {
+                    "username": "",
+                    "password": "",
+                    "id": 0,
+                    "nickname": "",
+                    "gender": 0,
+                    "profile": "",
+                    "phone": "",
+                    "email": "",
+                    "avatarUrl": "",
+                    "favorComment": [
+                      0
+                    ],
+                    "status": 0,
+                    "editTime": "",
+                    "createTime": "",
+                    "updateTime": "",
+                    "isDeleted": 0
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
     "/user": {
       "get": {
         "summary": "获取用户列表（搜索页面）",
@@ -182,7 +229,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ResultListContentUser",
+                  "$ref": "#/components/schemas/ResultListAdminContentUserVO",
                   "description": "所有用户列表"
                 },
                 "example": {
@@ -523,7 +570,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Result",
+                  "$ref": "#/components/schemas/ResultString",
                   "description": ""
                 },
                 "example": {
@@ -541,112 +588,18 @@
     },
     "/admin/kickout": {
       "post": {
-        "summary": "踢出在线的用户",
+        "summary": "强制下线在线的用户",
         "deprecated": false,
         "description": "",
         "tags": [],
         "parameters": [
           {
-            "name": "tokenName",
+            "name": "id",
             "in": "query",
-            "description": "",
-            "required": false,
+            "description": "用户id",
+            "required": true,
             "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "tokenValue",
-            "in": "query",
-            "description": "",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "isLogin",
-            "in": "query",
-            "description": "",
-            "required": false,
-            "schema": {
-              "type": "boolean"
-            }
-          },
-          {
-            "name": "loginId.key",
-            "in": "query",
-            "description": "",
-            "required": false,
-            "schema": {
-              "type": ""
-            }
-          },
-          {
-            "name": "loginType",
-            "in": "query",
-            "description": "",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "tokenTimeout",
-            "in": "query",
-            "description": "",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "sessionTimeout",
-            "in": "query",
-            "description": "",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "tokenSessionTimeout",
-            "in": "query",
-            "description": "",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "tokenActiveTimeout",
-            "in": "query",
-            "description": "",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "loginDeviceType",
-            "in": "query",
-            "description": "",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "tag",
-            "in": "query",
-            "description": "",
-            "required": false,
-            "schema": {
-              "type": "string"
+              "type": "integer"
             }
           }
         ],
@@ -656,7 +609,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Result",
+                  "$ref": "#/components/schemas/ResultString",
                   "description": ""
                 },
                 "example": {
@@ -704,13 +657,52 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Result",
+                  "$ref": "#/components/schemas/ResultString",
                   "description": ""
                 },
                 "example": {
                   "code": 0,
                   "message": "",
                   "data": {}
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/admin/user": {
+      "delete": {
+        "summary": "删除用户",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "用户id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultString",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "message": "",
+                  "data": ""
                 }
               }
             },
@@ -783,8 +775,8 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Result%3F",
-                  "description": "删除结果"
+                  "$ref": "#/components/schemas/ResultString",
+                  "description": ""
                 },
                 "example": {
                   "code": 0,
@@ -1013,7 +1005,44 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ResultString",
-                  "description": "更新结果"
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "message": "",
+                  "data": ""
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      },
+      "delete": {
+        "summary": "删除文章",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "文章id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultString",
+                  "description": ""
                 },
                 "example": {
                   "code": 0,
@@ -1092,7 +1121,7 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ResultString",
-                  "description": "更新结果"
+                  "description": ""
                 },
                 "example": {
                   "code": 0,
@@ -1268,8 +1297,8 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Result%3F",
-                  "description": "删除结果"
+                  "$ref": "#/components/schemas/ResultString",
+                  "description": ""
                 },
                 "example": {
                   "code": 0,
@@ -1297,7 +1326,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ResultListContentPictureVO",
+                  "$ref": "#/components/schemas/ResultListContentPicture",
                   "description": "图片全部字段"
                 },
                 "example": {
@@ -1478,6 +1507,89 @@
                   "code": 0,
                   "message": "",
                   "data": {}
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/comment": {
+      "get": {
+        "summary": "查询所有评论",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultListArticleCommentVO",
+                  "description": "评论列表"
+                },
+                "example": {
+                  "code": 0,
+                  "message": "",
+                  "data": [
+                    {
+                      "id": 0,
+                      "articleId": 0,
+                      "serialNumber": 0,
+                      "parentUsername": "",
+                      "parentNickname": "",
+                      "currentUsername": "",
+                      "currentNickname": "",
+                      "content": "",
+                      "createTime": "",
+                      "updateTime": "",
+                      "createBy": "",
+                      "updateBy": "",
+                      "isDeleted": 0,
+                      "articleTitle": ""
+                    }
+                  ]
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      },
+      "delete": {
+        "summary": "删除评论",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "评论id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultString",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "message": "",
+                  "data": ""
                 }
               }
             },
@@ -1694,6 +1806,10 @@
       "ContentUserVO": {
         "type": "object",
         "properties": {
+          "username": {
+            "type": "string",
+            "description": ""
+          },
           "nickname": {
             "type": "string",
             "description": ""
@@ -1704,6 +1820,23 @@
           },
           "avatarUrl": {
             "type": "string",
+            "description": ""
+          }
+        }
+      },
+      "ResultContentUser": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": ""
+          },
+          "message": {
+            "type": "string",
+            "description": ""
+          },
+          "data": {
+            "$ref": "#/components/schemas/ContentUser",
             "description": ""
           }
         }
@@ -1873,6 +2006,79 @@
           }
         }
       },
+      "AdminContentUserVO": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "用户名"
+          },
+          "password": {
+            "type": "string",
+            "description": "密码"
+          },
+          "id": {
+            "type": "integer",
+            "description": "id",
+            "format": "int64"
+          },
+          "nickname": {
+            "type": "string",
+            "description": "昵称"
+          },
+          "gender": {
+            "type": "integer",
+            "description": "性别 （0保密；1男性；2女性）"
+          },
+          "profile": {
+            "type": "string",
+            "description": "个性签名"
+          },
+          "phone": {
+            "type": "string",
+            "description": "电话号码"
+          },
+          "email": {
+            "type": "string",
+            "description": "邮箱"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "description": "头像链接"
+          },
+          "favorComment": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "点赞过的评论ID"
+          },
+          "status": {
+            "type": "integer",
+            "description": "状态(0停用；1启用)"
+          },
+          "editTime": {
+            "type": "string",
+            "description": "用户编辑时间"
+          },
+          "createTime": {
+            "type": "string",
+            "description": "创建时间"
+          },
+          "updateTime": {
+            "type": "string",
+            "description": "更新时间"
+          },
+          "isDeleted": {
+            "type": "integer",
+            "description": "是否删除"
+          },
+          "isLogin": {
+            "type": "boolean",
+            "description": ""
+          }
+        }
+      },
       "ContentAudioVO": {
         "type": "object",
         "properties": {
@@ -1956,6 +2162,34 @@
           "fileListMap": {
             "$ref": "#/components/schemas/MapListBaseFileDTO",
             "description": "文件列表，key为文件类型，value为文件列表"
+          },
+          "postTitleList": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "点过赞的评论所属的文章集合"
+          }
+        }
+      },
+      "ResultListAdminContentUserVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": ""
+          },
+          "message": {
+            "type": "string",
+            "description": ""
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminContentUserVO",
+              "description": ""
+            },
+            "description": ""
           }
         }
       },
@@ -2502,6 +2736,153 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ContentPictureVO",
+              "description": ""
+            },
+            "description": ""
+          }
+        }
+      },
+      "ContentPicture": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "id",
+            "format": "int64"
+          },
+          "fileName": {
+            "type": "string",
+            "description": "标题"
+          },
+          "filePath": {
+            "type": "string",
+            "description": "图片链接"
+          },
+          "source": {
+            "type": "integer",
+            "description": "来源（0网络；1本地）"
+          },
+          "createTime": {
+            "type": "string",
+            "description": "创建时间"
+          },
+          "updateTime": {
+            "type": "string",
+            "description": "更新时间"
+          },
+          "createBy": {
+            "type": "string",
+            "description": "创建人"
+          },
+          "updateBy": {
+            "type": "string",
+            "description": "更新人"
+          },
+          "isDeleted": {
+            "type": "integer",
+            "description": "是否删除"
+          }
+        }
+      },
+      "ResultListContentPicture": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": ""
+          },
+          "message": {
+            "type": "string",
+            "description": ""
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContentPicture",
+              "description": ""
+            },
+            "description": ""
+          }
+        }
+      },
+      "ArticleCommentVO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "ID主键",
+            "format": "int64"
+          },
+          "articleId": {
+            "type": "integer",
+            "description": "文章ID",
+            "format": "int64"
+          },
+          "serialNumber": {
+            "type": "integer",
+            "description": "楼层号"
+          },
+          "parentUsername": {
+            "type": "string",
+            "description": "父级评论用户名"
+          },
+          "parentNickname": {
+            "type": "string",
+            "description": "父级评论用户昵称"
+          },
+          "currentUsername": {
+            "type": "string",
+            "description": "当前评论用户名"
+          },
+          "currentNickname": {
+            "type": "string",
+            "description": "当前评论用户昵称"
+          },
+          "content": {
+            "type": "string",
+            "description": "评论内容"
+          },
+          "createTime": {
+            "type": "string",
+            "description": "创建时间—评论时间"
+          },
+          "updateTime": {
+            "type": "string",
+            "description": "修改时间"
+          },
+          "createBy": {
+            "type": "string",
+            "description": "创建人"
+          },
+          "updateBy": {
+            "type": "string",
+            "description": "修改人"
+          },
+          "isDeleted": {
+            "type": "integer",
+            "description": "逻辑删除（0否；1是）"
+          },
+          "articleTitle": {
+            "type": "string",
+            "description": "文章标题"
+          }
+        }
+      },
+      "ResultListArticleCommentVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": ""
+          },
+          "message": {
+            "type": "string",
+            "description": ""
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ArticleCommentVO",
               "description": ""
             },
             "description": ""

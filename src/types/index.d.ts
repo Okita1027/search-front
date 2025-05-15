@@ -6,4 +6,5 @@ export * from './picture';
 export * from './audio';
 export * from './video';
 export * from './file';
-export * from './auth'; 
+export * from './auth';
+export * from './comment'; 

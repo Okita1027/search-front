@@ -4,6 +4,7 @@
       <div class="logo">后台管理系统</div>
       <div class="nav">
         <router-link to="/admin/posts" class="nav-link">文章管理</router-link>
+        <router-link to="/admin/comments" class="nav-link">评论管理</router-link>
         <router-link to="/admin/pictures" class="nav-link">图片管理</router-link>
         <router-link to="/admin/audios" class="nav-link">音频管理</router-link>
         <router-link to="/admin/videos" class="nav-link">视频管理</router-link>

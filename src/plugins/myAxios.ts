@@ -42,14 +42,23 @@ instance.interceptors.request.use(
 instance.interceptors.response.use(
   (response: AxiosResponse): any => {
     // 2xx 范围内的状态码都会触发该函数
-    const data = response.data as ApiResponse<any>;
-    // 如果code为0，则返回data字段
-    if (data.code === 0) {
-      return Promise.resolve(data.data);
+    const data = response.data;
+    
+    // 处理嵌套的响应结构
+    if (data && data.code !== undefined) {
+      // 直接返回，不做处理，让业务代码处理
+      return data as ApiResponse<any>;
+    } else if (data && data.data && data.data.code !== undefined) {
+      // 嵌套的响应，返回内层数据
+      return data.data as ApiResponse<any>;
     }
-    // 否则返回完整响应，让调用者处理
-    console.error("request error", data);
-    return Promise.resolve(data);
+    
+    // 兜底返回
+    return {
+      code: 200,
+      message: 'SUCCESS',
+      data: data
+    };
   },
   (error) => {
     // 超出 2xx 范围的状态码都会触发该函数
