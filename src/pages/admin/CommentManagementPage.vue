@@ -3,27 +3,79 @@
     <div class="header">
       <h2>评论管理</h2>
       <div class="search-box">
-        <a-input-search
-          v-model:value="searchParams.content"
-          placeholder="搜索评论内容"
-          style="width: 200px"
-          @search="handleSearch"
-          allowClear
-        />
-        <a-input-search
-          v-model:value="searchParams.articleTitle"
-          placeholder="搜索文章标题"
-          style="width: 200px"
-          @search="handleSearch"
-          allowClear
-        />
-        <a-input-search
-          v-model:value="searchParams.username"
-          placeholder="搜索用户名"
-          style="width: 200px"
-          @search="handleSearch"
-          allowClear
-        />
+        <a-row :gutter="16">
+          <a-col :span="6">
+            <a-input-search
+              v-model:value="searchParams.content"
+              placeholder="搜索评论内容"
+              style="width: 100%"
+              @search="handleSearch"
+              allowClear
+            />
+          </a-col>
+          <a-col :span="6">
+            <a-input-search
+              v-model:value="searchParams.articleTitle"
+              placeholder="搜索文章标题"
+              style="width: 100%"
+              @search="handleSearch"
+              allowClear
+            />
+          </a-col>
+          <a-col :span="6">
+            <a-input-search
+              v-model:value="searchParams.username"
+              placeholder="搜索用户名/昵称"
+              style="width: 100%"
+              @search="handleSearch"
+              allowClear
+            />
+          </a-col>
+          <a-col :span="6">
+            <a-date-picker
+              v-model:value="searchParams.startDate"
+              placeholder="开始日期"
+              style="width: 100%"
+              @change="handleSearch"
+            />
+          </a-col>
+        </a-row>
+        <a-row :gutter="16" style="margin-top: 8px">
+          <a-col :span="6">
+            <a-date-picker
+              v-model:value="searchParams.endDate"
+              placeholder="结束日期"
+              style="width: 100%"
+              @change="handleSearch"
+            />
+          </a-col>
+          <a-col :span="6">
+            <a-select
+              v-model:value="searchParams.replyType"
+              placeholder="评论类型"
+              style="width: 100%"
+              @change="handleSearch"
+              allowClear
+            >
+              <a-select-option value="main">主评论</a-select-option>
+              <a-select-option value="reply">回复评论</a-select-option>
+            </a-select>
+          </a-col>
+          <a-col :span="6">
+            <a-input-number
+              v-model:value="searchParams.serialNumber"
+              placeholder="楼层号"
+              style="width: 100%"
+              @change="handleSearch"
+            />
+          </a-col>
+          <a-col :span="6">
+            <a-space>
+              <a-button type="primary" @click="handleSearch">搜索</a-button>
+              <a-button @click="resetSearch">重置</a-button>
+            </a-space>
+          </a-col>
+        </a-row>
       </div>
     </div>
 
@@ -61,6 +113,7 @@ import { onMounted, ref, computed } from "vue";
 import { message } from "ant-design-vue";
 import { commentService } from "@/services";
 import { ArticleComment, CommentSearchParams } from "@/types/comment";
+import dayjs from 'dayjs';
 
 const loading = ref(false);
 const allComments = ref<ArticleComment[]>([]);
@@ -70,11 +123,34 @@ const pagination = ref({
   total: 0
 });
 
-const searchParams = ref<CommentSearchParams>({
+const searchParams = ref<CommentSearchParams & {
+  startDate: dayjs.Dayjs | null,
+  endDate: dayjs.Dayjs | null,
+  replyType: 'main' | 'reply' | null,
+  serialNumber: number | null
+}>({
   content: "",
   articleTitle: "",
-  username: ""
+  username: "",
+  startDate: null,
+  endDate: null,
+  replyType: null,
+  serialNumber: null
 });
+
+// 重置搜索条件
+const resetSearch = () => {
+  searchParams.value = {
+    content: "",
+    articleTitle: "",
+    username: "",
+    startDate: null,
+    endDate: null,
+    replyType: null,
+    serialNumber: null
+  };
+  handleSearch();
+};
 
 // 根据搜索条件过滤评论
 const filteredComments = computed(() => {
@@ -96,13 +172,40 @@ const filteredComments = computed(() => {
     );
   }
   
-  // 按用户名搜索
+  // 按用户名/昵称搜索
   if (searchParams.value.username) {
     const keyword = searchParams.value.username.toLowerCase();
     result = result.filter(comment => 
       (comment.currentUsername && comment.currentUsername.toLowerCase().includes(keyword)) ||
       (comment.currentNickname && comment.currentNickname.toLowerCase().includes(keyword))
     );
+  }
+  
+  // 按日期范围搜索
+  if (searchParams.value.startDate) {
+    const startDate = searchParams.value.startDate.startOf('day');
+    result = result.filter(comment => {
+      return comment.createTime && dayjs(comment.createTime).isAfter(startDate);
+    });
+  }
+  
+  if (searchParams.value.endDate) {
+    const endDate = searchParams.value.endDate.endOf('day');
+    result = result.filter(comment => {
+      return comment.createTime && dayjs(comment.createTime).isBefore(endDate);
+    });
+  }
+  
+  // 按评论类型搜索
+  if (searchParams.value.replyType === 'main') {
+    result = result.filter(comment => !comment.parentUsername);
+  } else if (searchParams.value.replyType === 'reply') {
+    result = result.filter(comment => !!comment.parentUsername);
+  }
+  
+  // 按楼层号搜索
+  if (searchParams.value.serialNumber !== null) {
+    result = result.filter(comment => comment.serialNumber === searchParams.value.serialNumber);
   }
   
   return result;
@@ -264,8 +367,8 @@ onMounted(() => {
 
 .search-box {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .danger {

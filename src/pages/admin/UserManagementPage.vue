@@ -3,19 +3,100 @@
     <div class="header">
       <h2>用户管理</h2>
       <div class="search-box">
-        <a-input-search
-          v-model:value="searchParams.username"
-          placeholder="搜索用户名"
-          style="width: 200px"
-          @search="handleSearch"
-          allowClear
-        />
+        <a-row :gutter="16">
+          <a-col :span="6">
+            <a-input-search
+              v-model:value="searchParams.username"
+              placeholder="搜索用户名"
+              style="width: 100%"
+              @search="handleSearch"
+              allowClear
+            />
+          </a-col>
+          <a-col :span="6">
+            <a-input-search
+              v-model:value="searchParams.nickname"
+              placeholder="搜索昵称"
+              style="width: 100%"
+              @search="handleSearch"
+              allowClear
+            />
+          </a-col>
+          <a-col :span="6">
+            <a-input-search
+              v-model:value="searchParams.email"
+              placeholder="搜索邮箱"
+              style="width: 100%"
+              @search="handleSearch"
+              allowClear
+            />
+          </a-col>
+          <a-col :span="6">
+            <a-input-search
+              v-model:value="searchParams.phone"
+              placeholder="搜索手机号"
+              style="width: 100%"
+              @search="handleSearch"
+              allowClear
+            />
+          </a-col>
+        </a-row>
+        <a-row :gutter="16" style="margin-top: 8px">
+          <a-col :span="6">
+            <a-select
+              v-model:value="searchParams.status"
+              placeholder="账户状态"
+              style="width: 100%"
+              @change="handleSearch"
+              allowClear
+            >
+              <a-select-option :value="1">正常</a-select-option>
+              <a-select-option :value="0">已禁用</a-select-option>
+            </a-select>
+          </a-col>
+          <a-col :span="6">
+            <a-select
+              v-model:value="searchParams.login"
+              placeholder="登录状态"
+              style="width: 100%"
+              @change="handleSearch"
+              allowClear
+            >
+              <a-select-option :value="true">在线</a-select-option>
+              <a-select-option :value="false">离线</a-select-option>
+            </a-select>
+          </a-col>
+          <a-col :span="6">
+            <a-date-picker
+              v-model:value="searchParams.startDate"
+              placeholder="开始日期"
+              style="width: 100%"
+              @change="handleSearch"
+            />
+          </a-col>
+          <a-col :span="6">
+            <a-date-picker
+              v-model:value="searchParams.endDate"
+              placeholder="结束日期"
+              style="width: 100%"
+              @change="handleSearch"
+            />
+          </a-col>
+        </a-row>
+        <a-row :gutter="16" style="margin-top: 8px">
+          <a-col :span="24">
+            <a-space>
+              <a-button type="primary" @click="handleSearch">搜索</a-button>
+              <a-button @click="resetSearch">重置</a-button>
+            </a-space>
+          </a-col>
+        </a-row>
       </div>
     </div>
 
     <a-table
       :columns="columns"
-      :data-source="users"
+      :data-source="paginatedUsers"
       :loading="loading"
       :pagination="pagination"
       @change="handleTableChange"
@@ -92,23 +173,124 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, computed } from "vue";
 import type { TablePaginationConfig } from "ant-design-vue";
 import { message } from "ant-design-vue";
 import { adminService, userService } from "@/services";
 import { AdminUserVO, UserDTO } from "@/types";
-
-interface SearchParams {
-  username?: string;
-  current: number;
-  pageSize: number;
-}
+import dayjs from 'dayjs';
 
 const loading = ref(false);
-const users = ref<AdminUserVO[]>([]);
-const searchParams = ref<SearchParams>({
+const allUsers = ref<AdminUserVO[]>([]);
+const searchParams = ref({
+  username: "",
+  nickname: "",
+  email: "",
+  phone: "",
+  status: null as number | null,
+  login: null as boolean | null,
+  startDate: null as dayjs.Dayjs | null,
+  endDate: null as dayjs.Dayjs | null,
+});
+
+// 重置搜索条件
+const resetSearch = () => {
+  searchParams.value = {
+    username: "",
+    nickname: "",
+    email: "",
+    phone: "",
+    status: null,
+    login: null,
+    startDate: null,
+    endDate: null
+  };
+  handleSearch();
+};
+
+// 根据搜索条件过滤用户
+const filteredUsers = computed(() => {
+  let result = allUsers.value;
+  
+  // 按用户名搜索
+  if (searchParams.value.username) {
+    const keyword = searchParams.value.username.toLowerCase();
+    result = result.filter(user => 
+      user.username && user.username.toLowerCase().includes(keyword)
+    );
+  }
+  
+  // 按昵称搜索
+  if (searchParams.value.nickname) {
+    const keyword = searchParams.value.nickname.toLowerCase();
+    result = result.filter(user => 
+      user.nickname && user.nickname.toLowerCase().includes(keyword)
+    );
+  }
+  
+  // 按邮箱搜索
+  if (searchParams.value.email) {
+    const keyword = searchParams.value.email.toLowerCase();
+    result = result.filter(user => 
+      user.email && user.email.toLowerCase().includes(keyword)
+    );
+  }
+  
+  // 按手机号搜索
+  if (searchParams.value.phone) {
+    const keyword = searchParams.value.phone;
+    result = result.filter(user => 
+      user.phone && user.phone.includes(keyword)
+    );
+  }
+  
+  // 按状态搜索
+  if (searchParams.value.status !== null) {
+    result = result.filter(user => user.status === searchParams.value.status);
+  }
+  
+  // 按登录状态搜索
+  if (searchParams.value.login !== null) {
+    result = result.filter(user => user.login === searchParams.value.login);
+  }
+  
+  // 按注册日期搜索
+  if (searchParams.value.startDate) {
+    const startDate = searchParams.value.startDate.startOf('day');
+    result = result.filter(user => {
+      return user.createTime && dayjs(user.createTime).isAfter(startDate);
+    });
+  }
+  
+  if (searchParams.value.endDate) {
+    const endDate = searchParams.value.endDate.endOf('day');
+    result = result.filter(user => {
+      return user.createTime && dayjs(user.createTime).isBefore(endDate);
+    });
+  }
+  
+  return result;
+});
+
+// 分页数据
+const paginatedUsers = computed(() => {
+  // 分页处理
+  const start = (pagination.value.current - 1) * pagination.value.pageSize;
+  const end = start + pagination.value.pageSize;
+  return filteredUsers.value.slice(start, end);
+});
+
+// 更新分页总数
+const updatePaginationTotal = () => {
+  pagination.value.total = filteredUsers.value.length;
+};
+
+const pagination = ref<TablePaginationConfig>({
   current: 1,
-  pageSize: 10
+  pageSize: 10,
+  total: 0,
+  showSizeChanger: true,
+  showQuickJumper: true
 });
 
 // 编辑相关
@@ -205,14 +387,6 @@ const columns = [
   }
 ];
 
-const pagination = ref<TablePaginationConfig>({
-  current: 1,
-  pageSize: 10,
-  total: 0,
-  showSizeChanger: true,
-  showQuickJumper: true
-});
-
 // 获取用户列表
 const fetchUsers = async () => {
   loading.value = true;
@@ -220,10 +394,10 @@ const fetchUsers = async () => {
     const res = await userService.getUserListAll();
     if (res.code === 200) {
       // 存储所有用户数据用于本地过滤和分页
-      const allUsers = [...res.data];
+      allUsers.value = [...res.data];
       
       // 根据搜索条件过滤
-      const filteredData = allUsers.filter(user => {
+      const filteredData = allUsers.value.filter(user => {
         if (searchParams.value.username) {
           return user.username.includes(searchParams.value.username);
         }
@@ -236,7 +410,7 @@ const fetchUsers = async () => {
       // 本地分页处理
       const start = (pagination.value.current as number - 1) * (pagination.value.pageSize as number);
       const end = start + (pagination.value.pageSize as number);
-      users.value = filteredData.slice(start, end);
+      allUsers.value = filteredData.slice(start, end);
     }
   } catch (error) {
     message.error("获取用户列表失败");
@@ -248,6 +422,7 @@ const fetchUsers = async () => {
 // 处理搜索
 const handleSearch = () => {
   pagination.value.current = 1;
+  updatePaginationTotal();
   fetchUsers();
 };
 
@@ -255,6 +430,7 @@ const handleSearch = () => {
 const handleTableChange = (pag: TablePaginationConfig) => {
   pagination.value.current = pag.current || 1;
   pagination.value.pageSize = pag.pageSize || 10;
+  updatePaginationTotal();
   fetchUsers();
 };
 
@@ -338,7 +514,9 @@ const handleKickout = async (record: AdminUserVO) => {
 };
 
 onMounted(() => {
-  fetchUsers();
+  fetchUsers().then(() => {
+    updatePaginationTotal();
+  });
 });
 </script>
 
@@ -356,6 +534,7 @@ onMounted(() => {
 
 .search-box {
   display: flex;
-  gap: 16px;
+  flex-direction: column;
+  gap: 8px;
 }
 </style> 
