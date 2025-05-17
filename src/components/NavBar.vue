@@ -58,6 +58,8 @@ const handleLogout = async () => {
     message.success('退出登录成功');
     userInfo.value = null;
     router.push('/');
+    // 添加页面刷新
+    window.location.reload();
   } catch (error) {
     console.error('退出登录失败:', error);
     message.error('退出登录失败');
