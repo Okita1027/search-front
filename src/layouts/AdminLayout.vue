@@ -3,13 +3,13 @@
     <a-layout-header class="header">
       <div class="logo">后台管理系统</div>
       <div class="nav">
-        <router-link to="/admin/posts" class="nav-link">文章管理</router-link>
-        <router-link to="/admin/comments" class="nav-link">评论管理</router-link>
-        <router-link to="/admin/pictures" class="nav-link">图片管理</router-link>
-        <router-link to="/admin/audios" class="nav-link">音频管理</router-link>
-        <router-link to="/admin/videos" class="nav-link">视频管理</router-link>
-        <router-link to="/admin/users" class="nav-link">用户管理</router-link>
-        <router-link to="/" class="nav-link">回到搜索平台</router-link>
+        <router-link to="/admin/posts" class="nav-link" active-class="router-link-active">文章管理</router-link>
+        <router-link to="/admin/comments" class="nav-link" active-class="router-link-active">评论管理</router-link>
+        <router-link to="/admin/pictures" class="nav-link" active-class="router-link-active">图片管理</router-link>
+        <router-link to="/admin/audios" class="nav-link" active-class="router-link-active">音频管理</router-link>
+        <router-link to="/admin/videos" class="nav-link" active-class="router-link-active">视频管理</router-link>
+        <router-link to="/admin/users" class="nav-link" active-class="router-link-active">用户管理</router-link>
+        <router-link to="/" class="nav-link" active-class="router-link-active">回到搜索平台</router-link>
         <a @click="handleLogout" class="nav-link">退出登录</a>
       </div>
     </a-layout-header>
@@ -69,10 +69,20 @@ const handleLogout = async () => {
   color: #333;
   text-decoration: none;
   cursor: pointer;
+  padding: 4px 12px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
 }
 
 .nav-link:hover {
   color: #1890ff;
+  background-color: rgba(24, 144, 255, 0.1);
+}
+
+.router-link-active {
+  color: #1890ff;
+  background-color: rgba(24, 144, 255, 0.1);
+  font-weight: 500;
 }
 
 .content {
